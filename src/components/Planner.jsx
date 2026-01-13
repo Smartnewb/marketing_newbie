@@ -11,7 +11,7 @@ function Planner({ onUseIdea }) {
 
     // Chat & Research State
     const [messages, setMessages] = useState([
-        { role: 'assistant', content: "안녕하세요! 마케팅 파트너 GPT-4o입니다. \n오늘 어떤 마케팅 고민이 있으신가요? 💡\n\n(예: 인스타 릴스 주제 추천해줘, 20대 타겟 카피 써줘)" }
+        { role: 'assistant', content: "안녕하세요! 마케팅 파트너 GPT-5.2입니다. \n오늘 어떤 마케팅 고민이 있으신가요? 💡\n\n(예: 인스타 릴스 주제 추천해줘, 20대 타겟 카피 써줘)" }
     ]);
     const [chatInput, setChatInput] = useState('');
     const [isChatting, setIsChatting] = useState(false);
@@ -276,7 +276,7 @@ ${searchContext}`;
 
             } else {
                 // Normal Chat Instruction
-                finalSystemInstruction = `You are a professional marketing partner named 'GPT-4o'.
+                finalSystemInstruction = `You are a professional marketing partner named 'GPT-5.2'.
 Target Audience: Early 20s University Student.
 Tone: Rational but Empathic (Understand the user's feelings but give logical advice).
 Formatting: STRICTLY NO BOLD (**text**) or MARKDOWN HEADERS. Use plain text and line breaks.
@@ -579,7 +579,7 @@ ${localStorage.getItem('brand_knowledge_vectors') ? JSON.parse(localStorage.getI
                                 </button>
                             </div>
                             <div style={{ fontSize: '11px', color: '#94A3B8', marginTop: '8px', textAlign: 'center' }}>
-                                {isResearchMode ? 'Tavily와 연동하여 실시간 정보를 기반으로 심층 분석합니다.' : 'GPT-4o가 마케터 관점에서 피드백을 드립니다'}
+                                {isResearchMode ? 'Tavily와 연동하여 실시간 정보를 기반으로 심층 분석합니다.' : 'GPT-5.2가 마케터 관점에서 피드백을 드립니다'}
                             </div>
                         </div>
                     </div>
