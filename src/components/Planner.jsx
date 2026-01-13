@@ -1,0 +1,231 @@
+import React, { useState } from 'react';
+import { Sparkles, ArrowRight } from 'lucide-react';
+
+function Planner({ onUseIdea }) {
+    const [planTopic, setPlanTopic] = useState('');
+    const [planIdeas, setPlanIdeas] = useState([]);
+    const [isPlanning, setIsPlanning] = useState(false);
+
+    const handlePlanContent = () => {
+        if (!planTopic) return;
+        setIsPlanning(true);
+        setPlanIdeas([]);
+
+        setTimeout(() => {
+            const ideas = [
+                {
+                    title: `"${planTopic}" 밸런스 게임`,
+                    type: 'insta_story',
+                    desc: '스토리 투표 유도',
+                    hook: '이거 못 고르면 하수? 🤔'
+                },
+                {
+                    title: `현실적인 ${planTopic} 썰`,
+                    type: 'community',
+                    desc: '공감 유도 글',
+                    hook: '나만 이래? ㅠㅠ'
+                },
+                {
+                    title: `${planTopic} 유형별 특징`,
+                    type: 'insta_feed',
+                    desc: '정보성 유머',
+                    hook: '내 주변에 꼭 있다 ㅋㅋ'
+                },
+                {
+                    title: `POV: ${planTopic} 상황극`,
+                    type: 'reels_script',
+                    desc: '1인 2역 연기',
+                    hook: '소개팅 나갔는데...'
+                },
+            ];
+            setPlanIdeas(ideas);
+            setIsPlanning(false);
+        }, 1200);
+    };
+
+    const getTypeLabel = (type) => {
+        const labels = {
+            'insta_story': '📱 스토리',
+            'insta_feed': '📸 피드',
+            'reels_script': '🎬 릴스',
+            'community': '💬 커뮤니티'
+        };
+        return labels[type] || type;
+    };
+
+    const getTypeColor = (type) => {
+        const colors = {
+            'insta_story': '#E91E63',
+            'insta_feed': '#9C27B0',
+            'reels_script': '#673AB7',
+            'community': '#3F51B5'
+        };
+        return colors[type] || '#FF007A';
+    };
+
+    return (
+        <div className="custom-scrollbar" style={{
+            width: '100%',
+            height: '100%',
+            overflow: 'auto',
+            padding: '32px'
+        }}>
+            <div style={{ maxWidth: '900px', margin: '0 auto' }}>
+                <div style={{ textAlign: 'center', paddingTop: '48px', paddingBottom: '32px' }}>
+                    <h3 style={{
+                        fontSize: '28px',
+                        fontWeight: '800',
+                        color: '#1E293B',
+                        marginBottom: '12px'
+                    }}>
+                        💡 아이디어 랩에서 주제를 정해보세요!
+                    </h3>
+                    <p style={{ color: '#64748B', fontSize: '15px' }}>
+                        키워드를 입력하면 다양한 포맷의 콘텐츠 아이디어를 제안해드려요
+                    </p>
+
+                    <div style={{
+                        display: 'flex',
+                        justifyContent: 'center',
+                        maxWidth: '500px',
+                        margin: '32px auto 0'
+                    }}>
+                        <input
+                            type="text"
+                            value={planTopic}
+                            onChange={(e) => setPlanTopic(e.target.value)}
+                            onKeyDown={(e) => e.key === 'Enter' && handlePlanContent()}
+                            placeholder="예: 썸, 소개팅, 데이트룩, 첫만남"
+                            style={{
+                                flex: 1,
+                                padding: '16px 20px',
+                                border: '2px solid #E2E8F0',
+                                borderRadius: '16px 0 0 16px',
+                                fontSize: '15px',
+                                outline: 'none',
+                                transition: 'border-color 0.15s'
+                            }}
+                            onFocus={(e) => e.target.style.borderColor = '#FF007A'}
+                            onBlur={(e) => e.target.style.borderColor = '#E2E8F0'}
+                        />
+                        <button
+                            onClick={handlePlanContent}
+                            disabled={isPlanning || !planTopic}
+                            style={{
+                                padding: '16px 28px',
+                                backgroundColor: '#FF007A',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '0 16px 16px 0',
+                                fontWeight: '700',
+                                fontSize: '15px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '8px',
+                                cursor: 'pointer'
+                            }}
+                        >
+                            <Sparkles size={18} />
+                            {isPlanning ? '생성중...' : '아이디어 생성'}
+                        </button>
+                    </div>
+                </div>
+
+                {isPlanning && (
+                    <div style={{
+                        textAlign: 'center',
+                        padding: '48px',
+                        color: '#FF007A'
+                    }}>
+                        <div className="animate-pulse" style={{ fontSize: '15px', fontWeight: '500' }}>
+                            ✨ 아이디어를 생각하고 있습니다...
+                        </div>
+                    </div>
+                )}
+
+                {planIdeas.length > 0 && (
+                    <div className="animate-fade-in" style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+                        gap: '16px',
+                        marginTop: '16px'
+                    }}>
+                        {planIdeas.map((idea, idx) => (
+                            <div
+                                key={idx}
+                                onClick={() => onUseIdea(idea)}
+                                className="animate-fade-in-up"
+                                style={{
+                                    backgroundColor: 'white',
+                                    padding: '24px',
+                                    borderRadius: '20px',
+                                    border: '1px solid #E2E8F0',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.2s ease',
+                                    animationDelay: `${idx * 0.1}s`
+                                }}
+                                onMouseOver={(e) => {
+                                    e.currentTarget.style.borderColor = '#FF007A';
+                                    e.currentTarget.style.boxShadow = '0 8px 24px rgba(255,0,122,0.12)';
+                                    e.currentTarget.style.transform = 'translateY(-2px)';
+                                }}
+                                onMouseOut={(e) => {
+                                    e.currentTarget.style.borderColor = '#E2E8F0';
+                                    e.currentTarget.style.boxShadow = 'none';
+                                    e.currentTarget.style.transform = 'translateY(0)';
+                                }}
+                            >
+                                <div style={{
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center',
+                                    marginBottom: '12px'
+                                }}>
+                                    <span style={{
+                                        fontSize: '12px',
+                                        fontWeight: '600',
+                                        color: getTypeColor(idea.type),
+                                        backgroundColor: `${getTypeColor(idea.type)}15`,
+                                        padding: '4px 10px',
+                                        borderRadius: '8px'
+                                    }}>
+                                        {getTypeLabel(idea.type)}
+                                    </span>
+                                    <ArrowRight size={16} color="#94A3B8" />
+                                </div>
+                                <div style={{
+                                    fontWeight: '700',
+                                    fontSize: '17px',
+                                    color: '#1E293B',
+                                    marginBottom: '8px'
+                                }}>
+                                    {idea.title}
+                                </div>
+                                <div style={{
+                                    fontSize: '14px',
+                                    color: '#64748B',
+                                    marginBottom: '4px'
+                                }}>
+                                    {idea.desc}
+                                </div>
+                                <div style={{
+                                    fontSize: '15px',
+                                    color: '#FF007A',
+                                    fontWeight: '600',
+                                    marginTop: '12px',
+                                    padding: '8px 12px',
+                                    backgroundColor: '#FDF2F8',
+                                    borderRadius: '8px'
+                                }}>
+                                    "{idea.hook}"
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+}
+
+export default Planner;
