@@ -6,42 +6,83 @@ function Planner({ onUseIdea }) {
     const [planIdeas, setPlanIdeas] = useState([]);
     const [isPlanning, setIsPlanning] = useState(false);
 
-    const handlePlanContent = () => {
+    const handlePlanContent = async () => {
         if (!planTopic) return;
         setIsPlanning(true);
         setPlanIdeas([]);
 
-        setTimeout(() => {
+        const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
+
+        if (!apiKey) {
+            // Fallback to mock data if no API key
+            setTimeout(() => {
+                const ideas = [
+                    { title: `"${planTopic}" 밸런스 게임`, type: 'insta_story', desc: '스토리 투표 유도', hook: '이거 못 고르면 하수? 🤔' },
+                    { title: `현실적인 ${planTopic} 썰`, type: 'community', desc: '공감 유도 글', hook: '나만 이래? ㅠㅠ' },
+                    { title: `${planTopic} 유형별 특징`, type: 'insta_feed', desc: '정보성 유머', hook: '내 주변에 꼭 있다 ㅋㅋ' },
+                    { title: `POV: ${planTopic} 상황극`, type: 'reels_script', desc: '1인 2역 연기', hook: '소개팅 나갔는데...' },
+                ];
+                setPlanIdeas(ideas);
+                setIsPlanning(false);
+            }, 1200);
+            return;
+        }
+
+        try {
+            const response = await fetch('https://api.openai.com/v1/chat/completions', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${apiKey}`
+                },
+                body: JSON.stringify({
+                    model: 'gpt-4o-mini',
+                    messages: [
+                        {
+                            role: 'system',
+                            content: `당신은 대학생/사회초년생 타겟 소개팅 앱의 마케팅 전문가입니다. 
+                            20대의 언어 습관(톤앤매너)과 '외로움', '설렘' 등의 감성 키워드를 잘 활용합니다.
+                            인스타그램 콘텐츠 아이디어를 JSON 형식으로 제안해주세요.`
+                        },
+                        {
+                            role: 'user',
+                            content: `"${planTopic}" 주제로 인스타그램 마케팅 콘텐츠 아이디어 4개를 제안해주세요.
+                            
+                            다음 JSON 형식으로만 답변해주세요 (다른 텍스트 없이):
+                            [
+                                {"title": "콘텐츠 제목", "type": "insta_story 또는 insta_feed 또는 reels_script 또는 community 중 하나", "desc": "간단한 설명", "hook": "관심을 끄는 한 줄 멘트"}
+                            ]`
+                        }
+                    ],
+                    temperature: 0.8,
+                    max_tokens: 1000
+                })
+            });
+
+            const data = await response.json();
+            const content = data.choices[0].message.content;
+
+            // Parse JSON from response
+            const jsonMatch = content.match(/\[[\s\S]*\]/);
+            if (jsonMatch) {
+                const ideas = JSON.parse(jsonMatch[0]);
+                setPlanIdeas(ideas);
+            }
+        } catch (error) {
+            console.error('OpenAI API Error:', error);
+            // Fallback to mock data on error
             const ideas = [
-                {
-                    title: `"${planTopic}" 밸런스 게임`,
-                    type: 'insta_story',
-                    desc: '스토리 투표 유도',
-                    hook: '이거 못 고르면 하수? 🤔'
-                },
-                {
-                    title: `현실적인 ${planTopic} 썰`,
-                    type: 'community',
-                    desc: '공감 유도 글',
-                    hook: '나만 이래? ㅠㅠ'
-                },
-                {
-                    title: `${planTopic} 유형별 특징`,
-                    type: 'insta_feed',
-                    desc: '정보성 유머',
-                    hook: '내 주변에 꼭 있다 ㅋㅋ'
-                },
-                {
-                    title: `POV: ${planTopic} 상황극`,
-                    type: 'reels_script',
-                    desc: '1인 2역 연기',
-                    hook: '소개팅 나갔는데...'
-                },
+                { title: `"${planTopic}" 밸런스 게임`, type: 'insta_story', desc: '스토리 투표 유도', hook: '이거 못 고르면 하수? 🤔' },
+                { title: `현실적인 ${planTopic} 썰`, type: 'community', desc: '공감 유도 글', hook: '나만 이래? ㅠㅠ' },
+                { title: `${planTopic} 유형별 특징`, type: 'insta_feed', desc: '정보성 유머', hook: '내 주변에 꼭 있다 ㅋㅋ' },
+                { title: `POV: ${planTopic} 상황극`, type: 'reels_script', desc: '1인 2역 연기', hook: '소개팅 나갔는데...' },
             ];
             setPlanIdeas(ideas);
+        } finally {
             setIsPlanning(false);
-        }, 1200);
+        }
     };
+
 
     const getTypeLabel = (type) => {
         const labels = {

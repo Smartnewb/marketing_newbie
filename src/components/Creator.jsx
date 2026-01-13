@@ -17,19 +17,71 @@ function Creator({ topic, setTopic, generatedImageUrl, setGeneratedImageUrl, onS
         background: ''
     });
 
-    const handleGenerateText = () => {
+    const handleGenerateText = async () => {
         if (!topic) return;
         setIsGeneratingText(true);
 
-        setTimeout(() => {
-            const templates = [
-                `${topic}에 대한 솔직한 이야기! 💕\n\n요즘 이게 진짜 트렌드인 거 알죠?\n\n📌 핵심 포인트\n1. 첫인상이 90%를 결정한다\n2. 자연스러움이 최고의 무기\n3. 센스있는 리액션은 필수!\n\n#${topic.replace(/\s/g, '')} #소개팅 #연애 #20대`,
-                `[${topic}] 이것만 알면 성공률 2배! 🔥\n\n솔직히 말해서 다들 이거 몰라서 실패함\n진짜 실전에서 써먹을 수 있는 팁만 모았어\n\n✓ 핵심만 짧게\n✓ TMI는 나중에\n✓ 호감 표현은 과감하게\n\n#연애꿀팁 #${topic.replace(/\s/g, '')}`
-            ];
-            setGeneratedContent(templates[Math.floor(Math.random() * templates.length)]);
+        const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
+
+        if (!apiKey) {
+            // Fallback to mock data if no API key
+            setTimeout(() => {
+                const templates = [
+                    `${topic}에 대한 솔직한 이야기! 💕\n\n요즘 이게 진짜 트렌드인 거 알죠?\n\n📌 핵심 포인트\n1. 첫인상이 90%를 결정한다\n2. 자연스러움이 최고의 무기\n3. 센스있는 리액션은 필수!\n\n#${topic.replace(/\s/g, '')} #소개팅 #연애 #20대`,
+                    `[${topic}] 이것만 알면 성공률 2배! 🔥\n\n솔직히 말해서 다들 이거 몰라서 실패함\n진짜 실전에서 써먹을 수 있는 팁만 모았어\n\n✓ 핵심만 짧게\n✓ TMI는 나중에\n✓ 호감 표현은 과감하게\n\n#연애꿀팁 #${topic.replace(/\s/g, '')}`
+                ];
+                setGeneratedContent(templates[Math.floor(Math.random() * templates.length)]);
+                setIsGeneratingText(false);
+            }, 1200);
+            return;
+        }
+
+        try {
+            const response = await fetch('https://api.openai.com/v1/chat/completions', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${apiKey}`
+                },
+                body: JSON.stringify({
+                    model: 'gpt-4o-mini',
+                    messages: [
+                        {
+                            role: 'system',
+                            content: `당신은 대학생/사회초년생 타겟 소개팅 앱의 인스타그램 마케팅 카피라이터입니다.
+                            20대의 언어 습관과 밈, '외로움', '설렘' 등의 감성 키워드를 잘 활용합니다.
+                            짧고 임팩트 있는 문구를 작성하며, 적절한 이모지와 해시태그를 포함합니다.`
+                        },
+                        {
+                            role: 'user',
+                            content: `"${topic}" 주제로 인스타그램 피드용 마케팅 카피를 작성해주세요.
+                            
+                            형식:
+                            - 임팩트 있는 첫 줄 (Hook)
+                            - 본문 (3-4줄, 공감 유도)
+                            - 핵심 포인트 리스트 (이모지 포함)
+                            - 해시태그 5개 이상
+                            
+                            20대 대학생이 공감할 수 있는 톤으로 작성해주세요.`
+                        }
+                    ],
+                    temperature: 0.9,
+                    max_tokens: 500
+                })
+            });
+
+            const data = await response.json();
+            const content = data.choices[0].message.content;
+            setGeneratedContent(content);
+        } catch (error) {
+            console.error('OpenAI API Error:', error);
+            // Fallback to mock data on error
+            setGeneratedContent(`${topic}에 대한 솔직한 이야기! 💕\n\n요즘 이게 진짜 트렌드인 거 알죠?\n\n📌 핵심 포인트\n1. 첫인상이 90%를 결정한다\n2. 자연스러움이 최고의 무기\n\n#${topic.replace(/\s/g, '')} #소개팅 #연애`);
+        } finally {
             setIsGeneratingText(false);
-        }, 1200);
+        }
     };
+
 
     const handleGenerateImage = () => {
         setIsGeneratingImage(true);
