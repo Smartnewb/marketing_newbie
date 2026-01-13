@@ -120,7 +120,7 @@ function Planner({ onUseIdea }) {
                     'Authorization': `Bearer ${apiKey}`
                 },
                 body: JSON.stringify({
-                    model: 'gpt-4o',
+                    model: 'gpt-5.2',
                     messages: [
                         {
                             role: 'system',
@@ -162,7 +162,7 @@ function Planner({ onUseIdea }) {
             setPlanIdeas(ideas);
 
             // Log Usage
-            UsageTracker.logTextUsage('gpt-4o', 150, 400, 'default_user', 'Planner');
+            UsageTracker.logTextUsage('gpt-5.2', 150, 400, 'default_user', 'Planner');
 
         } catch (error) {
             console.error("Planning Error:", error);
@@ -195,7 +195,7 @@ function Planner({ onUseIdea }) {
                     }
                 ]);
                 // Log Mock Usage for Dashboard Verification
-                UsageTracker.logTextUsage('gpt-4o', 100, 300, 'default_user', 'Planner (Mock)');
+                UsageTracker.logTextUsage('gpt-5.2', 100, 300, 'default_user', 'Planner (Mock)');
             }, 500);
         } finally {
             setIsPlanning(false);
@@ -314,7 +314,7 @@ ${localStorage.getItem('brand_knowledge_vectors') ? JSON.parse(localStorage.getI
                     'Authorization': `Bearer ${apiKey}`
                 },
                 body: JSON.stringify({
-                    model: 'gpt-4o',
+                    model: 'gpt-5.2',
                     messages: [systemPrompt, ...messages, userMsg],
                     temperature: isResearchMode ? 0.5 : 0.9, // Lower temp for research
                     max_tokens: 1500
@@ -329,7 +329,7 @@ ${localStorage.getItem('brand_knowledge_vectors') ? JSON.parse(localStorage.getI
             setMessages(prev => [...prev, botMsg]);
 
             // Log Usage
-            UsageTracker.logTextUsage('gpt-4o', botMsg.content.length / 4, botMsg.content.length / 3, 'default_user', 'Chat');
+            UsageTracker.logTextUsage('gpt-5.2', botMsg.content.length / 4, botMsg.content.length / 3, 'default_user', 'Chat');
 
         } catch (error) {
             console.error("Chat Error:", error);
