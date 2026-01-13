@@ -83,7 +83,7 @@ function Creator({ topic, setTopic, generatedImageUrl, setGeneratedImageUrl, onS
     };
 
 
-    const handleGenerateImage = () => {
+    const handleGenerateImage = async () => {
         setIsGeneratingImage(true);
 
         const { count, gender, age, country, situation, background } = imgSettings;
@@ -98,34 +98,112 @@ function Creator({ topic, setTopic, generatedImageUrl, setGeneratedImageUrl, onS
         const contextDesc = situation ? `, ${situation}` : '';
         const bgDesc = background ? `, in ${background}` : '';
 
-        const basePrompt = `realistic photo of ${peopleDesc}${contextDesc}${bgDesc}, highly detailed face, 8k, photorealistic, cinematic lighting, shot on 35mm lens, depth of field, dating app aesthetic, natural lighting, high quality portrait`;
+        const basePrompt = `realistic photo of ${peopleDesc}${contextDesc}${bgDesc}, highly detailed face, 8k, photorealistic, cinematic lighting, shot on 35mm lens, depth of field, dating app aesthetic, natural lighting, high quality portrait, professional photography`;
 
         setCurrentPrompt(basePrompt);
 
-        const encodedPrompt = encodeURIComponent(basePrompt);
-        const url = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=800&height=800&nologo=true&seed=${Math.floor(Math.random() * 100000)}`;
+        const arkApiKey = import.meta.env.VITE_ARK_API_KEY;
 
-        setTimeout(() => {
-            setGeneratedImageUrl(url);
-            setIsGeneratingImage(false);
-        }, 1500);
+        if (arkApiKey) {
+            // Use Seedream 4.5 API
+            try {
+                const response = await fetch('https://ark.ap-southeast.bytepluses.com/api/v3/images/generations', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${arkApiKey}`
+                    },
+                    body: JSON.stringify({
+                        model: 'seedream-4-5-251128',
+                        prompt: basePrompt,
+                        sequential_image_generation: 'disabled',
+                        response_format: 'url',
+                        size: '2K',
+                        stream: false,
+                        watermark: false
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.data && data.data[0] && data.data[0].url) {
+                    setGeneratedImageUrl(data.data[0].url);
+                } else {
+                    throw new Error('No image URL in response');
+                }
+            } catch (error) {
+                console.error('Seedream API Error:', error);
+                // Fallback to Pollinations
+                const encodedPrompt = encodeURIComponent(basePrompt);
+                const url = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=800&height=800&nologo=true&seed=${Math.floor(Math.random() * 100000)}`;
+                setGeneratedImageUrl(url);
+            }
+        } else {
+            // Fallback to Pollinations API
+            const encodedPrompt = encodeURIComponent(basePrompt);
+            const url = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=800&height=800&nologo=true&seed=${Math.floor(Math.random() * 100000)}`;
+            setTimeout(() => {
+                setGeneratedImageUrl(url);
+            }, 1500);
+        }
+
+        setIsGeneratingImage(false);
     };
 
-    const handleRefineImage = () => {
+    const handleRefineImage = async () => {
         if (!refineInput || !currentPrompt) return;
         setIsGeneratingImage(true);
 
         const newPrompt = `${currentPrompt}, ${refineInput}`;
         setCurrentPrompt(newPrompt);
 
-        const encodedPrompt = encodeURIComponent(newPrompt);
-        const url = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=800&height=800&nologo=true&seed=${Math.floor(Math.random() * 100000)}`;
+        const arkApiKey = import.meta.env.VITE_ARK_API_KEY;
 
-        setTimeout(() => {
-            setGeneratedImageUrl(url);
-            setIsGeneratingImage(false);
-            setRefineInput('');
-        }, 1500);
+        if (arkApiKey) {
+            // Use Seedream 4.5 API
+            try {
+                const response = await fetch('https://ark.ap-southeast.bytepluses.com/api/v3/images/generations', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${arkApiKey}`
+                    },
+                    body: JSON.stringify({
+                        model: 'seedream-4-5-251128',
+                        prompt: newPrompt,
+                        sequential_image_generation: 'disabled',
+                        response_format: 'url',
+                        size: '2K',
+                        stream: false,
+                        watermark: false
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.data && data.data[0] && data.data[0].url) {
+                    setGeneratedImageUrl(data.data[0].url);
+                } else {
+                    throw new Error('No image URL in response');
+                }
+            } catch (error) {
+                console.error('Seedream API Error:', error);
+                // Fallback to Pollinations
+                const encodedPrompt = encodeURIComponent(newPrompt);
+                const url = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=800&height=800&nologo=true&seed=${Math.floor(Math.random() * 100000)}`;
+                setGeneratedImageUrl(url);
+            }
+        } else {
+            // Fallback to Pollinations API
+            const encodedPrompt = encodeURIComponent(newPrompt);
+            const url = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=800&height=800&nologo=true&seed=${Math.floor(Math.random() * 100000)}`;
+            setTimeout(() => {
+                setGeneratedImageUrl(url);
+            }, 1500);
+        }
+
+        setRefineInput('');
+        setIsGeneratingImage(false);
     };
 
     return (
