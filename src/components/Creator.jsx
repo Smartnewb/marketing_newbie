@@ -196,6 +196,7 @@ function Creator({ topic, setTopic, generatedImageUrl, setGeneratedImageUrl, onS
                         sequential_image_generation: 'disabled',
                         response_format: 'url',
                         size: '2K',
+                        aspect_ratio: aspectRatio, // 비율 적용
                         stream: false,
                         watermark: false
                     })
@@ -210,15 +211,15 @@ function Creator({ topic, setTopic, generatedImageUrl, setGeneratedImageUrl, onS
                 }
             } catch (error) {
                 console.error('Seedream API Error:', error);
-                // Fallback to Pollinations
-                const encodedPrompt = encodeURIComponent(basePrompt);
-                const url = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=800&height=800&nologo=true&seed=${Math.floor(Math.random() * 100000)}`;
+                // Fallback to Pollinations with correct dimensions
+                const encodedPrompt = encodeURIComponent(finalPrompt);
+                const url = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=${ratioConfig.width}&height=${ratioConfig.height}&nologo=true&seed=${Math.floor(Math.random() * 100000)}`;
                 setGeneratedImageUrl(url);
             }
         } else {
-            // Fallback to Pollinations API
-            const encodedPrompt = encodeURIComponent(basePrompt);
-            const url = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=800&height=800&nologo=true&seed=${Math.floor(Math.random() * 100000)}`;
+            // Fallback to Pollinations API with correct dimensions
+            const encodedPrompt = encodeURIComponent(finalPrompt);
+            const url = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=${ratioConfig.width}&height=${ratioConfig.height}&nologo=true&seed=${Math.floor(Math.random() * 100000)}`;
             setTimeout(() => {
                 setGeneratedImageUrl(url);
             }, 1500);
@@ -234,10 +235,13 @@ function Creator({ topic, setTopic, generatedImageUrl, setGeneratedImageUrl, onS
         const newPrompt = `${currentPrompt}, ${refineInput}`;
         setCurrentPrompt(newPrompt);
 
+        const { aspectRatio } = imgSettings;
+        const ratioConfig = ASPECT_RATIOS.find(r => r.value === aspectRatio) || ASPECT_RATIOS[0];
+
         const arkApiKey = import.meta.env.VITE_ARK_API_KEY;
 
         if (arkApiKey) {
-            // Use Seedream 4.5 API
+            // Use Seedream 4.5 API with aspect ratio
             try {
                 const response = await fetch('/api/seedream', {
                     method: 'POST',
@@ -251,6 +255,7 @@ function Creator({ topic, setTopic, generatedImageUrl, setGeneratedImageUrl, onS
                         sequential_image_generation: 'disabled',
                         response_format: 'url',
                         size: '2K',
+                        aspect_ratio: aspectRatio,
                         stream: false,
                         watermark: false
                     })
@@ -265,15 +270,15 @@ function Creator({ topic, setTopic, generatedImageUrl, setGeneratedImageUrl, onS
                 }
             } catch (error) {
                 console.error('Seedream API Error:', error);
-                // Fallback to Pollinations
+                // Fallback to Pollinations with aspect ratio
                 const encodedPrompt = encodeURIComponent(newPrompt);
-                const url = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=800&height=800&nologo=true&seed=${Math.floor(Math.random() * 100000)}`;
+                const url = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=${ratioConfig.width}&height=${ratioConfig.height}&nologo=true&seed=${Math.floor(Math.random() * 100000)}`;
                 setGeneratedImageUrl(url);
             }
         } else {
-            // Fallback to Pollinations API
+            // Fallback to Pollinations API with aspect ratio
             const encodedPrompt = encodeURIComponent(newPrompt);
-            const url = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=800&height=800&nologo=true&seed=${Math.floor(Math.random() * 100000)}`;
+            const url = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=${ratioConfig.width}&height=${ratioConfig.height}&nologo=true&seed=${Math.floor(Math.random() * 100000)}`;
             setTimeout(() => {
                 setGeneratedImageUrl(url);
             }, 1500);
