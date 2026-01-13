@@ -1,9 +1,28 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
     Type, Square, Circle, Layers, Layout, Droplet, BoxSelect,
     AlignLeft, AlignCenter, AlignRight, MousePointer2, Maximize,
-    ArrowUp, ArrowDown, ChevronsUp, ChevronsDown, Trash2, Download
+    ArrowUp, ArrowDown, ChevronsUp, ChevronsDown, Trash2, Download, Bold
 } from 'lucide-react';
+
+const FONT_OPTIONS = [
+    { name: '기본', value: 'sans-serif' },
+    { name: 'Pretendard', value: 'Pretendard, sans-serif' },
+    { name: 'Noto Sans KR', value: '"Noto Sans KR", sans-serif' },
+    { name: 'Nanum Gothic', value: '"Nanum Gothic", sans-serif' },
+    { name: 'Nanum Myeongjo', value: '"Nanum Myeongjo", serif' },
+    { name: 'Black Han Sans', value: '"Black Han Sans", sans-serif' },
+    { name: 'Jua', value: '"Jua", sans-serif' },
+    { name: 'Gothic A1', value: '"Gothic A1", sans-serif' }
+];
+
+const FONT_WEIGHTS = [
+    { name: 'Light', value: '300' },
+    { name: 'Regular', value: '400' },
+    { name: 'Medium', value: '500' },
+    { name: 'Bold', value: '700' },
+    { name: 'Black', value: '900' }
+];
 
 function Studio({ canvasBg, setCanvasBg, canvasObjects, setCanvasObjects, onSave, topic }) {
     const [selectedObjId, setSelectedObjId] = useState(null);
@@ -15,6 +34,8 @@ function Studio({ canvasBg, setCanvasBg, canvasObjects, setCanvasObjects, onSave
     const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
     const [initialDims, setInitialDims] = useState({ x: 0, y: 0, width: 0, height: 0 });
     const [selectedGradientStop, setSelectedGradientStop] = useState(0);
+    const [editingTextId, setEditingTextId] = useState(null);
+    const textInputRef = useRef(null);
 
     const createBaseObject = (type, overrides = {}) => ({
         id: Date.now(),
@@ -41,10 +62,11 @@ function Studio({ canvasBg, setCanvasBg, canvasObjects, setCanvasObjects, onSave
         const newObj = createBaseObject('text', {
             text: '텍스트 입력',
             x: 100, y: 150,
-            width: 200, height: 50,
+            width: 200, height: 60,
             bg: 'transparent',
             fontSize: 24,
-            fontWeight: 'bold',
+            fontWeight: '700',
+            fontFamily: 'sans-serif',
             textAlign: 'left'
         });
         setCanvasObjects([...canvasObjects, newObj]);
@@ -758,9 +780,12 @@ function Studio({ canvasBg, setCanvasBg, canvasObjects, setCanvasObjects, onSave
                                 <h3 style={{ fontSize: '11px', fontWeight: '700', color: '#64748B', marginBottom: '12px', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '4px' }}>
                                     <Type size={12} /> Typography
                                 </h3>
+
+                                {/* Text Content */}
                                 <textarea
                                     value={activeObj.text}
                                     onChange={(e) => updateObjProp(selectedObjId, 'text', e.target.value)}
+                                    placeholder="텍스트를 입력하세요 (줄바꿈 가능)"
                                     style={{
                                         width: '100%',
                                         padding: '12px',
@@ -768,26 +793,90 @@ function Studio({ canvasBg, setCanvasBg, canvasObjects, setCanvasObjects, onSave
                                         borderRadius: '10px',
                                         marginBottom: '12px',
                                         fontSize: '14px',
-                                        resize: 'none',
+                                        resize: 'vertical',
                                         outline: 'none',
-                                        backgroundColor: '#F8FAFC'
+                                        backgroundColor: '#F8FAFC',
+                                        minHeight: '60px',
+                                        fontFamily: 'inherit',
+                                        lineHeight: '1.5'
                                     }}
-                                    rows={2}
+                                    rows={3}
                                 />
-                                <div style={{ display: 'flex', gap: '8px' }}>
-                                    <input
-                                        type="number"
-                                        value={activeObj.fontSize}
-                                        onChange={(e) => updateObjProp(selectedObjId, 'fontSize', Number(e.target.value))}
+
+                                {/* Font Family */}
+                                <div style={{ marginBottom: '12px' }}>
+                                    <label style={{ fontSize: '10px', color: '#94A3B8', fontWeight: '600', display: 'block', marginBottom: '6px' }}>글꼴</label>
+                                    <select
+                                        value={activeObj.fontFamily || 'sans-serif'}
+                                        onChange={(e) => updateObjProp(selectedObjId, 'fontFamily', e.target.value)}
                                         style={{
-                                            width: '60px',
-                                            textAlign: 'center',
+                                            width: '100%',
+                                            padding: '10px 12px',
                                             border: '1px solid #E2E8F0',
                                             borderRadius: '8px',
                                             fontSize: '13px',
-                                            padding: '8px'
+                                            backgroundColor: '#F8FAFC',
+                                            cursor: 'pointer',
+                                            outline: 'none'
                                         }}
-                                    />
+                                    >
+                                        {FONT_OPTIONS.map(font => (
+                                            <option key={font.value} value={font.value} style={{ fontFamily: font.value }}>
+                                                {font.name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                {/* Font Weight */}
+                                <div style={{ marginBottom: '12px' }}>
+                                    <label style={{ fontSize: '10px', color: '#94A3B8', fontWeight: '600', display: 'block', marginBottom: '6px' }}>
+                                        <Bold size={10} style={{ marginRight: '4px' }} />두께
+                                    </label>
+                                    <div style={{ display: 'flex', gap: '4px', backgroundColor: '#F8FAFC', borderRadius: '8px', padding: '4px', border: '1px solid #E2E8F0' }}>
+                                        {FONT_WEIGHTS.map(weight => (
+                                            <button
+                                                key={weight.value}
+                                                onClick={() => updateObjProp(selectedObjId, 'fontWeight', weight.value)}
+                                                style={{
+                                                    flex: 1,
+                                                    padding: '6px 4px',
+                                                    fontSize: '10px',
+                                                    fontWeight: weight.value,
+                                                    borderRadius: '6px',
+                                                    border: 'none',
+                                                    backgroundColor: activeObj.fontWeight === weight.value ? 'white' : 'transparent',
+                                                    color: activeObj.fontWeight === weight.value ? '#FF007A' : '#64748B',
+                                                    cursor: 'pointer',
+                                                    boxShadow: activeObj.fontWeight === weight.value ? '0 1px 2px rgba(0,0,0,0.05)' : 'none',
+                                                    transition: 'all 0.15s'
+                                                }}
+                                            >
+                                                {weight.name}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* Font Size and Alignment */}
+                                <div style={{ display: 'flex', gap: '8px' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', backgroundColor: '#F8FAFC', borderRadius: '8px', border: '1px solid #E2E8F0', padding: '4px 8px' }}>
+                                        <span style={{ fontSize: '10px', color: '#94A3B8' }}>크기</span>
+                                        <input
+                                            type="number"
+                                            value={activeObj.fontSize}
+                                            onChange={(e) => updateObjProp(selectedObjId, 'fontSize', Number(e.target.value))}
+                                            style={{
+                                                width: '50px',
+                                                textAlign: 'center',
+                                                border: 'none',
+                                                backgroundColor: 'transparent',
+                                                fontSize: '13px',
+                                                fontWeight: '600',
+                                                outline: 'none'
+                                            }}
+                                        />
+                                    </div>
                                     <div style={{
                                         flex: 1,
                                         display: 'flex',
@@ -818,6 +907,10 @@ function Studio({ canvasBg, setCanvasBg, canvasObjects, setCanvasObjects, onSave
                                             </button>
                                         ))}
                                     </div>
+                                </div>
+
+                                <div style={{ marginTop: '12px', fontSize: '10px', color: '#94A3B8', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                    <MousePointer2 size={10} /> 캔버스에서 텍스트를 더블클릭하여 직접 편집
                                 </div>
                             </div>
                         )}
@@ -939,7 +1032,18 @@ function Studio({ canvasBg, setCanvasBg, canvasObjects, setCanvasObjects, onSave
                             <div
                                 key={obj.id}
                                 id={`obj-${obj.id}`}
-                                onMouseDown={(e) => handleMouseDown(e, obj.id)}
+                                onMouseDown={(e) => {
+                                    if (editingTextId !== obj.id) {
+                                        handleMouseDown(e, obj.id);
+                                    }
+                                }}
+                                onDoubleClick={(e) => {
+                                    if (obj.type === 'text') {
+                                        e.stopPropagation();
+                                        setEditingTextId(obj.id);
+                                        setSelectedObjId(obj.id);
+                                    }
+                                }}
                                 style={{
                                     position: 'absolute',
                                     left: `${obj.x}px`,
@@ -950,7 +1054,7 @@ function Studio({ canvasBg, setCanvasBg, canvasObjects, setCanvasObjects, onSave
                                     opacity: obj.opacity,
                                     background: obj.type !== 'text' ? bgStyle : obj.bg,
                                     display: 'flex',
-                                    alignItems: 'center',
+                                    alignItems: obj.type === 'text' ? 'flex-start' : 'center',
                                     justifyContent: obj.textAlign === 'center' ? 'center' : obj.textAlign === 'right' ? 'flex-end' : 'flex-start',
                                     padding: obj.type === 'text' ? '10px' : '0',
                                     zIndex: 10,
@@ -958,22 +1062,60 @@ function Studio({ canvasBg, setCanvasBg, canvasObjects, setCanvasObjects, onSave
                                     border: obj.strokeWidth > 0 && obj.type !== 'text' ? `${obj.strokeWidth}px solid ${obj.strokeColor}` : 'none',
                                     boxShadow: obj.shadowBlur > 0 ? `2px 2px ${obj.shadowBlur}px ${obj.shadowColor}` : 'none',
                                     boxSizing: 'border-box',
-                                    cursor: 'move'
+                                    cursor: obj.type === 'text' && editingTextId === obj.id ? 'text' : 'move'
                                 }}
                             >
                                 {obj.type === 'text' && (
-                                    <span style={{
-                                        fontSize: `${obj.fontSize}px`,
-                                        fontWeight: obj.fontWeight,
-                                        color: obj.isGradient ? 'transparent' : obj.color,
-                                        backgroundImage: obj.isGradient ? bgStyle : 'none',
-                                        WebkitBackgroundClip: obj.isGradient ? 'text' : 'border-box',
-                                        pointerEvents: 'none',
-                                        width: '100%',
-                                        textAlign: obj.textAlign
-                                    }}>
-                                        {obj.text}
-                                    </span>
+                                    editingTextId === obj.id ? (
+                                        <textarea
+                                            ref={textInputRef}
+                                            autoFocus
+                                            value={obj.text}
+                                            onChange={(e) => updateObjProp(obj.id, 'text', e.target.value)}
+                                            onBlur={() => setEditingTextId(null)}
+                                            onKeyDown={(e) => {
+                                                if (e.key === 'Escape') {
+                                                    setEditingTextId(null);
+                                                }
+                                            }}
+                                            style={{
+                                                width: '100%',
+                                                height: '100%',
+                                                fontSize: `${obj.fontSize}px`,
+                                                fontWeight: obj.fontWeight,
+                                                fontFamily: obj.fontFamily || 'sans-serif',
+                                                color: obj.isGradient ? 'transparent' : obj.color,
+                                                backgroundImage: obj.isGradient ? bgStyle : 'none',
+                                                WebkitBackgroundClip: obj.isGradient ? 'text' : 'border-box',
+                                                textAlign: obj.textAlign,
+                                                background: 'transparent',
+                                                border: 'none',
+                                                outline: 'none',
+                                                resize: 'none',
+                                                padding: 0,
+                                                margin: 0,
+                                                lineHeight: '1.4',
+                                                overflow: 'hidden'
+                                            }}
+                                        />
+                                    ) : (
+                                        <span style={{
+                                            fontSize: `${obj.fontSize}px`,
+                                            fontWeight: obj.fontWeight,
+                                            fontFamily: obj.fontFamily || 'sans-serif',
+                                            color: obj.isGradient ? 'transparent' : obj.color,
+                                            backgroundImage: obj.isGradient ? bgStyle : 'none',
+                                            WebkitBackgroundClip: obj.isGradient ? 'text' : 'border-box',
+                                            pointerEvents: 'none',
+                                            width: '100%',
+                                            textAlign: obj.textAlign,
+                                            whiteSpace: 'pre-wrap',
+                                            lineHeight: '1.4',
+                                            wordBreak: 'break-word'
+                                        }}>
+                                            {obj.text}
+                                        </span>
+                                    )
                                 )}
 
                                 {/* Resize Handles */}

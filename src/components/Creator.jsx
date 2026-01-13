@@ -1,5 +1,13 @@
 import React, { useState } from 'react';
-import { PenTool, ImageIcon, Send, Palette, User, Users, MapPin, Sparkles, RefreshCw } from 'lucide-react';
+import { PenTool, ImageIcon, Send, Palette, User, Users, MapPin, Sparkles, RefreshCw, Wand2, RatioIcon } from 'lucide-react';
+
+const ASPECT_RATIOS = [
+    { name: '1:1', value: '1:1', width: 800, height: 800 },
+    { name: '4:5', value: '4:5', width: 800, height: 1000 },
+    { name: '9:16', value: '9:16', width: 720, height: 1280 },
+    { name: '16:9', value: '16:9', width: 1280, height: 720 },
+    { name: '3:4', value: '3:4', width: 768, height: 1024 }
+];
 
 function Creator({ topic, setTopic, generatedImageUrl, setGeneratedImageUrl, onSendToStudio }) {
     const [isGeneratingText, setIsGeneratingText] = useState(false);
@@ -7,6 +15,8 @@ function Creator({ topic, setTopic, generatedImageUrl, setGeneratedImageUrl, onS
     const [isGeneratingImage, setIsGeneratingImage] = useState(false);
     const [currentPrompt, setCurrentPrompt] = useState('');
     const [refineInput, setRefineInput] = useState('');
+    const [customPrompt, setCustomPrompt] = useState('');
+    const [isEnhancingPrompt, setIsEnhancingPrompt] = useState(false);
 
     const [imgSettings, setImgSettings] = useState({
         count: '1',
@@ -14,7 +24,8 @@ function Creator({ topic, setTopic, generatedImageUrl, setGeneratedImageUrl, onS
         age: '20대 초반',
         country: 'Korean',
         situation: '',
-        background: ''
+        background: '',
+        aspectRatio: '1:1'
     });
 
     const handleGenerateText = async () => {
@@ -93,30 +104,85 @@ function Creator({ topic, setTopic, generatedImageUrl, setGeneratedImageUrl, onS
         }
     };
 
+    // GPT-5.2로 프롬프트 향상
+    const enhancePromptWithGPT = async (userPrompt) => {
+        const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
+        if (!apiKey) return userPrompt;
+
+        try {
+            setIsEnhancingPrompt(true);
+            const response = await fetch('https://api.openai.com/v1/chat/completions', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${apiKey}`
+                },
+                body: JSON.stringify({
+                    model: 'gpt-5.2',
+                    messages: [
+                        {
+                            role: 'system',
+                            content: `You are an expert at creating detailed image generation prompts for realistic portrait photography. 
+                            Enhance the user's prompt to create a highly detailed, photorealistic image description.
+                            Focus on: lighting, camera settings, mood, facial expressions, and professional photography aesthetics.
+                            The images should look like professional dating app photos - attractive, natural, and approachable.
+                            Keep the output under 200 words. Output only the enhanced prompt, nothing else.`
+                        },
+                        {
+                            role: 'user',
+                            content: `Enhance this image prompt for a dating app marketing photo: "${userPrompt}"`
+                        }
+                    ],
+                    temperature: 0.7,
+                    max_tokens: 300
+                })
+            });
+
+            const data = await response.json();
+            if (data.choices && data.choices[0]) {
+                return data.choices[0].message.content;
+            }
+            return userPrompt;
+        } catch (error) {
+            console.error('Prompt enhancement error:', error);
+            return userPrompt;
+        } finally {
+            setIsEnhancingPrompt(false);
+        }
+    };
 
     const handleGenerateImage = async () => {
         setIsGeneratingImage(true);
 
-        const { count, gender, age, country, situation, background } = imgSettings;
+        const { count, gender, age, country, situation, background, aspectRatio } = imgSettings;
+        const ratioConfig = ASPECT_RATIOS.find(r => r.value === aspectRatio) || ASPECT_RATIOS[0];
 
-        const genderMap = {
-            'female': 'woman',
-            'male': 'man',
-            'mixed': 'couple'
-        };
+        let finalPrompt = '';
 
-        const peopleDesc = `${count === '1' ? 'a single' : count} ${age} ${country} ${genderMap[gender] || 'person'}`;
-        const contextDesc = situation ? `, ${situation}` : '';
-        const bgDesc = background ? `, in ${background}` : '';
+        // 커스텀 프롬프트가 있으면 GPT-5.2로 향상시키기
+        if (customPrompt.trim()) {
+            finalPrompt = await enhancePromptWithGPT(customPrompt);
+        } else {
+            // 기존 설정 기반 프롬프트 생성
+            const genderMap = {
+                'female': 'woman',
+                'male': 'man',
+                'mixed': 'couple'
+            };
 
-        const basePrompt = `realistic photo of ${peopleDesc}${contextDesc}${bgDesc}, highly detailed face, 8k, photorealistic, cinematic lighting, shot on 35mm lens, depth of field, dating app aesthetic, natural lighting, high quality portrait, professional photography`;
+            const peopleDesc = `${count === '1' ? 'a single' : count} ${age} ${country} ${genderMap[gender] || 'person'}`;
+            const contextDesc = situation ? `, ${situation}` : '';
+            const bgDesc = background ? `, in ${background}` : '';
 
-        setCurrentPrompt(basePrompt);
+            finalPrompt = `realistic photo of ${peopleDesc}${contextDesc}${bgDesc}, highly detailed face, 8k, photorealistic, cinematic lighting, shot on 35mm lens, depth of field, dating app aesthetic, natural lighting, high quality portrait, professional photography`;
+        }
+
+        setCurrentPrompt(finalPrompt);
 
         const arkApiKey = import.meta.env.VITE_ARK_API_KEY;
 
         if (arkApiKey) {
-            // Use Seedream 4.5 API
+            // Use Seedream 4.5 API with aspect ratio
             try {
                 const response = await fetch('/api/seedream', {
                     method: 'POST',
@@ -126,7 +192,7 @@ function Creator({ topic, setTopic, generatedImageUrl, setGeneratedImageUrl, onS
                     },
                     body: JSON.stringify({
                         model: 'seedream-4-5-251128',
-                        prompt: basePrompt,
+                        prompt: finalPrompt,
                         sequential_image_generation: 'disabled',
                         response_format: 'url',
                         size: '2K',
@@ -455,11 +521,66 @@ function Creator({ topic, setTopic, generatedImageUrl, setGeneratedImageUrl, onS
                                     }}
                                 />
                             </div>
+
+                            {/* Custom Prompt */}
+                            <div style={{ borderTop: '1px solid #F1F5F9', paddingTop: '12px', marginTop: '4px' }}>
+                                <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: '#64748B', marginBottom: '6px' }}>
+                                    <Wand2 size={12} style={{ marginRight: '4px' }} />직접 프롬프트 작성 (선택)
+                                </label>
+                                <textarea
+                                    value={customPrompt}
+                                    onChange={e => setCustomPrompt(e.target.value)}
+                                    placeholder="직접 원하는 이미지를 설명하세요. GPT-5.2가 프롬프트를 자동으로 향상시킵니다. (예: 카페에서 웃고있는 20대 여성, 따뜻한 조명)"
+                                    style={{
+                                        width: '100%',
+                                        padding: '12px',
+                                        border: '1px solid #E2E8F0',
+                                        borderRadius: '10px',
+                                        fontSize: '13px',
+                                        resize: 'vertical',
+                                        minHeight: '80px',
+                                        lineHeight: '1.5',
+                                        backgroundColor: '#FEFCE8'
+                                    }}
+                                />
+                                <div style={{ fontSize: '10px', color: '#94A3B8', marginTop: '4px' }}>
+                                    ✨ GPT-5.2가 입력한 설명을 전문 사진 프롬프트로 향상시킵니다
+                                </div>
+                            </div>
+
+                            {/* Aspect Ratio */}
+                            <div>
+                                <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: '#64748B', marginBottom: '6px' }}>
+                                    📐 이미지 비율
+                                </label>
+                                <div style={{ display: 'flex', gap: '6px' }}>
+                                    {ASPECT_RATIOS.map(ratio => (
+                                        <button
+                                            key={ratio.value}
+                                            onClick={() => setImgSettings({ ...imgSettings, aspectRatio: ratio.value })}
+                                            style={{
+                                                flex: 1,
+                                                padding: '8px 4px',
+                                                fontSize: '11px',
+                                                fontWeight: imgSettings.aspectRatio === ratio.value ? '700' : '500',
+                                                borderRadius: '8px',
+                                                border: imgSettings.aspectRatio === ratio.value ? '2px solid #FF007A' : '1px solid #E2E8F0',
+                                                backgroundColor: imgSettings.aspectRatio === ratio.value ? '#FDF2F8' : 'white',
+                                                color: imgSettings.aspectRatio === ratio.value ? '#FF007A' : '#64748B',
+                                                cursor: 'pointer',
+                                                transition: 'all 0.15s'
+                                            }}
+                                        >
+                                            {ratio.name}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
                         </div>
 
                         <button
                             onClick={handleGenerateImage}
-                            disabled={isGeneratingImage}
+                            disabled={isGeneratingImage || isEnhancingPrompt}
                             style={{
                                 width: '100%',
                                 padding: '16px',
@@ -475,10 +596,15 @@ function Creator({ topic, setTopic, generatedImageUrl, setGeneratedImageUrl, onS
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
-                                gap: '8px'
+                                gap: '8px',
+                                opacity: (isGeneratingImage || isEnhancingPrompt) ? 0.7 : 1
                             }}
                         >
-                            {isGeneratingImage ? (
+                            {isEnhancingPrompt ? (
+                                <>
+                                    <Wand2 size={16} className="animate-pulse" /> 프롬프트 향상중...
+                                </>
+                            ) : isGeneratingImage ? (
                                 <>
                                     <RefreshCw size={16} className="animate-spin" /> 사진 촬영중...
                                 </>
