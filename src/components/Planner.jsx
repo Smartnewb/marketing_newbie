@@ -29,6 +29,8 @@ function Planner({ onUseIdea }) {
         }
 
         try {
+            console.log('OpenAI API 호출 시작...', { apiKey: apiKey ? '있음' : '없음' });
+
             const response = await fetch('https://api.openai.com/v1/chat/completions', {
                 method: 'POST',
                 headers: {
@@ -59,14 +61,26 @@ function Planner({ onUseIdea }) {
                 })
             });
 
+            console.log('OpenAI Response status:', response.status);
+
             const data = await response.json();
+            console.log('OpenAI Response data:', data);
+
+            if (!response.ok) {
+                throw new Error(data.error?.message || `HTTP ${response.status}`);
+            }
+
             const content = data.choices[0].message.content;
+            console.log('OpenAI Content:', content);
 
             // Parse JSON from response
             const jsonMatch = content.match(/\[[\s\S]*\]/);
             if (jsonMatch) {
                 const ideas = JSON.parse(jsonMatch[0]);
+                console.log('Parsed ideas:', ideas);
                 setPlanIdeas(ideas);
+            } else {
+                throw new Error('JSON 파싱 실패');
             }
         } catch (error) {
             console.error('OpenAI API Error:', error);

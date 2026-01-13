@@ -37,6 +37,8 @@ function Creator({ topic, setTopic, generatedImageUrl, setGeneratedImageUrl, onS
         }
 
         try {
+            console.log('OpenAI 카피라이팅 API 호출 시작...', { apiKey: apiKey ? '있음' : '없음' });
+
             const response = await fetch('https://api.openai.com/v1/chat/completions', {
                 method: 'POST',
                 headers: {
@@ -70,8 +72,17 @@ function Creator({ topic, setTopic, generatedImageUrl, setGeneratedImageUrl, onS
                 })
             });
 
+            console.log('OpenAI Response status:', response.status);
+
             const data = await response.json();
+            console.log('OpenAI Response data:', data);
+
+            if (!response.ok) {
+                throw new Error(data.error?.message || `HTTP ${response.status}`);
+            }
+
             const content = data.choices[0].message.content;
+            console.log('OpenAI Content:', content);
             setGeneratedContent(content);
         } catch (error) {
             console.error('OpenAI API Error:', error);
@@ -107,7 +118,7 @@ function Creator({ topic, setTopic, generatedImageUrl, setGeneratedImageUrl, onS
         if (arkApiKey) {
             // Use Seedream 4.5 API
             try {
-                const response = await fetch('https://ark.ap-southeast.bytepluses.com/api/v3/images/generations', {
+                const response = await fetch('/api/seedream', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -162,7 +173,7 @@ function Creator({ topic, setTopic, generatedImageUrl, setGeneratedImageUrl, onS
         if (arkApiKey) {
             // Use Seedream 4.5 API
             try {
-                const response = await fetch('https://ark.ap-southeast.bytepluses.com/api/v3/images/generations', {
+                const response = await fetch('/api/seedream', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
