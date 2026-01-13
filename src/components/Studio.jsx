@@ -138,7 +138,7 @@ function Studio({ canvasBg, setCanvasBg, canvasObjects, setCanvasObjects, canvas
         isGradient: false,
         // Advanced gradient stops: array of { position: 0-100, color: hex, alpha: 0-1 }
         gradientStops: [
-            { position: 0, color: '#FF007A', alpha: 1 },
+            { position: 0, color: '#7A4AE2', alpha: 1 },
             { position: 100, color: '#6366F1', alpha: 1 }
         ],
         gradientAngle: 180,
@@ -222,7 +222,7 @@ function Studio({ canvasBg, setCanvasBg, canvasObjects, setCanvasObjects, canvas
         const newObj = createBaseObject(type, {
             x: 125, y: 125,
             width: 150, height: 150,
-            color: '#FF007A',
+            color: '#7A4AE2',
             isGradient: false
         });
         setCanvasObjects([...canvasObjects, newObj]);
@@ -334,7 +334,7 @@ function Studio({ canvasBg, setCanvasBg, canvasObjects, setCanvasObjects, canvas
             if (obj.id !== objId) return obj;
             // Ensure we have at least 2 default stops
             const stops = (obj.gradientStops && obj.gradientStops.length >= 2) ? obj.gradientStops : [
-                { position: 0, color: '#FF007A', alpha: 1 },
+                { position: 0, color: '#7A4AE2', alpha: 1 },
                 { position: 100, color: '#6366F1', alpha: 1 }
             ];
             // Find surrounding colors and interpolate
@@ -413,7 +413,7 @@ function Studio({ canvasBg, setCanvasBg, canvasObjects, setCanvasObjects, canvas
         let stops = obj.gradientStops;
         if (!stops || !Array.isArray(stops) || stops.length < 2) {
             stops = [
-                { position: 0, color: '#FF007A', alpha: 1 },
+                { position: 0, color: '#7A4AE2', alpha: 1 },
                 { position: 100, color: '#6366F1', alpha: 1 }
             ];
         }
@@ -918,7 +918,7 @@ function Studio({ canvasBg, setCanvasBg, canvasObjects, setCanvasObjects, canvas
             let fillStyle = obj.color;
             if (obj.isGradient) {
                 const stops = obj.gradientStops || [
-                    { position: 0, color: '#FF007A', alpha: 1 },
+                    { position: 0, color: '#7A4AE2', alpha: 1 },
                     { position: 100, color: '#6366F1', alpha: 1 }
                 ];
                 const angle = (obj.gradientAngle || 180) * Math.PI / 180;
@@ -1068,7 +1068,7 @@ function Studio({ canvasBg, setCanvasBg, canvasObjects, setCanvasObjects, canvas
                             cursor: 'pointer',
                             transition: 'all 0.15s'
                         }}
-                        onMouseOver={e => { e.currentTarget.style.backgroundColor = '#FDF2F8'; e.currentTarget.style.borderColor = '#FF007A'; }}
+                        onMouseOver={e => { e.currentTarget.style.backgroundColor = '#F3E8FF'; e.currentTarget.style.borderColor = '#7A4AE2'; }}
                         onMouseOut={e => { e.currentTarget.style.backgroundColor = 'white'; e.currentTarget.style.borderColor = '#E2E8F0'; }}
                     >
                         <Type size={20} />
@@ -1088,7 +1088,7 @@ function Studio({ canvasBg, setCanvasBg, canvasObjects, setCanvasObjects, canvas
                             cursor: 'pointer',
                             transition: 'all 0.15s'
                         }}
-                        onMouseOver={e => { e.currentTarget.style.backgroundColor = '#FDF2F8'; e.currentTarget.style.borderColor = '#FF007A'; }}
+                        onMouseOver={e => { e.currentTarget.style.backgroundColor = '#F3E8FF'; e.currentTarget.style.borderColor = '#7A4AE2'; }}
                         onMouseOut={e => { e.currentTarget.style.backgroundColor = 'white'; e.currentTarget.style.borderColor = '#E2E8F0'; }}
                     >
                         <Square size={20} />
@@ -1108,7 +1108,7 @@ function Studio({ canvasBg, setCanvasBg, canvasObjects, setCanvasObjects, canvas
                             cursor: 'pointer',
                             transition: 'all 0.15s'
                         }}
-                        onMouseOver={e => { e.currentTarget.style.backgroundColor = '#FDF2F8'; e.currentTarget.style.borderColor = '#FF007A'; }}
+                        onMouseOver={e => { e.currentTarget.style.backgroundColor = '#F3E8FF'; e.currentTarget.style.borderColor = '#7A4AE2'; }}
                         onMouseOut={e => { e.currentTarget.style.backgroundColor = 'white'; e.currentTarget.style.borderColor = '#E2E8F0'; }}
                     >
                         <Circle size={20} />
@@ -1128,7 +1128,7 @@ function Studio({ canvasBg, setCanvasBg, canvasObjects, setCanvasObjects, canvas
                             cursor: 'pointer',
                             transition: 'all 0.15s'
                         }}
-                        onMouseOver={e => { e.currentTarget.style.backgroundColor = '#FDF2F8'; e.currentTarget.style.borderColor = '#FF007A'; }}
+                        onMouseOver={e => { e.currentTarget.style.backgroundColor = '#F3E8FF'; e.currentTarget.style.borderColor = '#7A4AE2'; }}
                         onMouseOut={e => { e.currentTarget.style.backgroundColor = 'white'; e.currentTarget.style.borderColor = '#E2E8F0'; }}
                     >
                         <Image size={20} />
@@ -1277,7 +1277,7 @@ function Studio({ canvasBg, setCanvasBg, canvasObjects, setCanvasObjects, canvas
                             <div style={{
                                 borderTop: '1px solid #F1F5F9',
                                 paddingTop: '16px',
-                                backgroundColor: '#FDF2F8',
+                                backgroundColor: '#F3E8FF',
                                 margin: '-20px -20px 0 -20px',
                                 padding: '16px 20px',
                                 borderRadius: '0'
@@ -1376,7 +1376,7 @@ function Studio({ canvasBg, setCanvasBg, canvasObjects, setCanvasObjects, canvas
                                             const updates = { isGradient: true };
                                             if (!activeObj.gradientStops || activeObj.gradientStops.length < 2) {
                                                 updates.gradientStops = [
-                                                    { position: 0, color: '#FF007A', alpha: 1 },
+                                                    { position: 0, color: '#7A4AE2', alpha: 1 },
                                                     { position: 100, color: '#6366F1', alpha: 1 }
                                                 ];
                                             }
@@ -1454,9 +1454,9 @@ function Studio({ canvasBg, setCanvasBg, canvasObjects, setCanvasObjects, canvas
                                                                     if (typeof gradientCSS === 'string') {
                                                                         return gradientCSS.replace(/\d+deg/, '90deg');
                                                                     }
-                                                                    return 'linear-gradient(90deg, #FF007A 0%, #6366F1 100%)';
+                                                                    return 'linear-gradient(90deg, #7A4AE2 0%, #6366F1 100%)';
                                                                 } catch {
-                                                                    return 'linear-gradient(90deg, #FF007A 0%, #6366F1 100%)';
+                                                                    return 'linear-gradient(90deg, #7A4AE2 0%, #6366F1 100%)';
                                                                 }
                                                             })(),
                                                             cursor: 'crosshair',
@@ -2000,7 +2000,7 @@ function Studio({ canvasBg, setCanvasBg, canvasObjects, setCanvasObjects, canvas
                                                     borderRadius: '6px',
                                                     border: 'none',
                                                     backgroundColor: activeObj.fontWeight === weight.value ? 'white' : 'transparent',
-                                                    color: activeObj.fontWeight === weight.value ? '#FF007A' : '#64748B',
+                                                    color: activeObj.fontWeight === weight.value ? '#7A4AE2' : '#64748B',
                                                     cursor: 'pointer',
                                                     boxShadow: activeObj.fontWeight === weight.value ? '0 1px 2px rgba(0,0,0,0.05)' : 'none',
                                                     transition: 'all 0.15s'
@@ -2052,7 +2052,7 @@ function Studio({ canvasBg, setCanvasBg, canvasObjects, setCanvasObjects, canvas
                                                     borderRadius: '6px',
                                                     border: 'none',
                                                     backgroundColor: activeObj.textAlign === align ? 'white' : 'transparent',
-                                                    color: activeObj.textAlign === align ? '#FF007A' : '#94A3B8',
+                                                    color: activeObj.textAlign === align ? '#7A4AE2' : '#94A3B8',
                                                     cursor: 'pointer',
                                                     boxShadow: activeObj.textAlign === align ? '0 1px 2px rgba(0,0,0,0.05)' : 'none'
                                                 }}
@@ -2316,7 +2316,7 @@ function Studio({ canvasBg, setCanvasBg, canvasObjects, setCanvasObjects, canvas
                                     justifyContent: obj.textAlign === 'center' ? 'center' : obj.textAlign === 'right' ? 'flex-end' : 'flex-start',
                                     padding: obj.type === 'text' ? '10px' : '0',
                                     zIndex: imageEditingId === obj.id ? 1000 : 10,
-                                    outline: imageEditingId === obj.id ? '2px solid #10B981' : (transformingObjId === obj.id ? '2px dashed #FF007A' : (selectedObjId === obj.id ? '2px solid #3B82F6' : 'none')),
+                                    outline: imageEditingId === obj.id ? '2px solid #10B981' : (transformingObjId === obj.id ? '2px dashed #7A4AE2' : (selectedObjId === obj.id ? '2px solid #3B82F6' : 'none')),
                                     border: obj.strokeWidth > 0 && obj.type !== 'text' && obj.type !== 'image' ? `${obj.strokeWidth}px solid ${obj.strokeColor}` : 'none',
                                     boxShadow: effectStyles.boxShadow,
                                     filter: effectStyles.filter,

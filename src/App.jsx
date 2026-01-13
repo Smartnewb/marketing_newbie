@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
-import { Heart, Lightbulb, PenTool, Palette, History } from 'lucide-react';
+import { Heart, Lightbulb, PenTool, Palette, History, BookOpen, BarChart2 } from 'lucide-react';
 import Planner from './components/Planner';
 import Creator from './components/Creator';
 import Studio from './components/Studio';
 import HistoryPanel from './components/HistoryPanel';
+import Dashboard from './components/Dashboard';
+import Learning from './components/Learning';
 import './index.css';
 
 function App() {
@@ -44,7 +46,7 @@ function App() {
       strokeColor: '#000000',
       isGradient: false,
       gradientStops: [
-        { position: 0, color: '#FF007A', alpha: 1 },
+        { position: 0, color: '#7A4AE2', alpha: 1 },
         { position: 100, color: '#6366F1', alpha: 1 }
       ],
       gradientAngle: 180,
@@ -84,7 +86,7 @@ function App() {
       strokeColor: '#000',
       isGradient: false,
       gradientStops: [
-        { position: 0, color: '#FF007A', alpha: 1 },
+        { position: 0, color: '#7A4AE2', alpha: 1 },
         { position: 100, color: '#6366F1', alpha: 1 }
       ],
       gradientAngle: 180,
@@ -97,6 +99,8 @@ function App() {
     { id: 'planner', icon: Lightbulb, label: '기획' },
     { id: 'create', icon: PenTool, label: '제작' },
     { id: 'studio', icon: Palette, label: '디자인' },
+    { id: 'learning', icon: BookOpen, label: '학습' },
+    { id: 'dashboard', icon: BarChart2, label: '통계' },
     { id: 'history', icon: History, label: '보관' }
   ];
 
@@ -117,12 +121,12 @@ function App() {
         <div style={{
           width: '44px',
           height: '44px',
-          background: 'linear-gradient(135deg, #FF007A 0%, #FF5BA3 100%)',
+          background: 'linear-gradient(135deg, #7A4AE2 0%, #9E7CF0 100%)',
           borderRadius: '12px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          boxShadow: '0 4px 12px rgba(255,0,122,0.3)',
+          boxShadow: '0 4px 12px rgba(122,74,226,0.3)',
           marginBottom: '32px'
         }}>
           <Heart fill="white" color="white" size={22} />
@@ -140,8 +144,8 @@ function App() {
                 justifyContent: 'center',
                 padding: '12px 8px',
                 borderRadius: '12px',
-                backgroundColor: activeTab === menu.id ? '#FDF2F8' : 'transparent',
-                color: activeTab === menu.id ? '#FF007A' : '#94A3B8',
+                backgroundColor: activeTab === menu.id ? '#F3E8FF' : 'transparent',
+                color: activeTab === menu.id ? '#7A4AE2' : '#94A3B8',
                 fontWeight: activeTab === menu.id ? '700' : '500',
                 fontSize: '10px',
                 border: 'none',
@@ -171,7 +175,9 @@ function App() {
           <h2 style={{ fontWeight: '700', fontSize: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
             {activeTab === 'studio' ? '🎨 디자인 스튜디오' :
               activeTab === 'planner' ? '💡 아이디어 기획' :
-                activeTab === 'create' ? '✨ 컨텐츠 제작' : '📂 보관함'}
+                activeTab === 'create' ? '✨ 컨텐츠 제작' :
+                  activeTab === 'learning' ? '📚 브랜드 가이드라인 학습' :
+                    activeTab === 'dashboard' ? '📊 사용량 및 비용 대시보드' : '📂 보관함'}
             {activeTab === 'studio' && (
               <span style={{
                 fontSize: '11px',
@@ -198,6 +204,7 @@ function App() {
               generatedImageUrl={generatedImageUrl}
               setGeneratedImageUrl={setGeneratedImageUrl}
               onSendToStudio={sendToStudio}
+              onSaveToHistory={saveToHistory}
             />
           )}
 
@@ -212,6 +219,14 @@ function App() {
               onSave={saveToHistory}
               topic={topic}
             />
+          )}
+
+          {activeTab === 'learning' && (
+            <Learning />
+          )}
+
+          {activeTab === 'dashboard' && (
+            <Dashboard />
           )}
 
           {activeTab === 'history' && (

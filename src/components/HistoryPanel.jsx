@@ -73,8 +73,8 @@ function HistoryPanel({ history, onOpenItem }) {
                                     style={{
                                         width: '100%',
                                         padding: '12px',
-                                        backgroundColor: '#FDF2F8',
-                                        color: '#FF007A',
+                                        backgroundColor: '#F3E8FF',
+                                        color: '#7A4AE2',
                                         border: 'none',
                                         borderRadius: '10px',
                                         fontSize: '13px',
@@ -87,7 +87,7 @@ function HistoryPanel({ history, onOpenItem }) {
                                         transition: 'all 0.15s'
                                     }}
                                     onMouseOver={e => e.currentTarget.style.backgroundColor = '#FCE7F3'}
-                                    onMouseOut={e => e.currentTarget.style.backgroundColor = '#FDF2F8'}
+                                    onMouseOut={e => e.currentTarget.style.backgroundColor = '#F3E8FF'}
                                 >
                                     <Palette size={14} /> 스튜디오에서 열기
                                 </button>

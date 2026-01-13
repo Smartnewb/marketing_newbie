@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { PenTool, ImageIcon, Send, Palette, User, Users, MapPin, Sparkles, RefreshCw, Wand2, RatioIcon } from 'lucide-react';
+import { PenTool, ImageIcon, Send, Palette, User, Users, MapPin, Sparkles, RefreshCw, Wand2, RatioIcon, FolderPlus } from 'lucide-react';
+import { UsageTracker } from '../utils/UsageTracker';
 
 const ASPECT_RATIOS = [
     { name: '1:1', value: '1:1', width: 800, height: 800 },
@@ -9,7 +10,7 @@ const ASPECT_RATIOS = [
     { name: '3:4', value: '3:4', width: 768, height: 1024 }
 ];
 
-function Creator({ topic, setTopic, generatedImageUrl, setGeneratedImageUrl, onSendToStudio }) {
+function Creator({ topic, setTopic, generatedImageUrl, setGeneratedImageUrl, onSendToStudio, onSaveToHistory }) {
     const [isGeneratingText, setIsGeneratingText] = useState(false);
     const [generatedContent, setGeneratedContent] = useState('');
     const [isGeneratingImage, setIsGeneratingImage] = useState(false);
@@ -95,6 +96,8 @@ function Creator({ topic, setTopic, generatedImageUrl, setGeneratedImageUrl, onS
             const content = data.choices[0].message.content;
             console.log('OpenAI Content:', content);
             setGeneratedContent(content);
+            // Log OpenAI 텍스트 생성 비용
+            UsageTracker.logTextUsage('gpt-5.2', 200, 500, 'marketing_newbie', '제작 (텍스트)');
         } catch (error) {
             console.error('OpenAI API Error:', error);
             // Fallback to mock data on error
@@ -140,6 +143,8 @@ function Creator({ topic, setTopic, generatedImageUrl, setGeneratedImageUrl, onS
 
             const data = await response.json();
             if (data.choices && data.choices[0]) {
+                // Log 프롬프트 향상 비용
+                UsageTracker.logTextUsage('gpt-5.2', 100, 300, 'marketing_newbie', '프롬프트 향상');
                 return data.choices[0].message.content;
             }
             return userPrompt;
@@ -206,6 +211,8 @@ function Creator({ topic, setTopic, generatedImageUrl, setGeneratedImageUrl, onS
 
                 if (data.data && data.data[0] && data.data[0].url) {
                     setGeneratedImageUrl(data.data[0].url);
+                    // Log Seedream 이미지 생성 비용
+                    UsageTracker.logImageUsage('seedream-4-5', 1, 'marketing_newbie', '제작 (이미지)');
                 } else {
                     throw new Error('No image URL in response');
                 }
@@ -265,6 +272,8 @@ function Creator({ topic, setTopic, generatedImageUrl, setGeneratedImageUrl, onS
 
                 if (data.data && data.data[0] && data.data[0].url) {
                     setGeneratedImageUrl(data.data[0].url);
+                    // Log Seedream 이미지 수정 비용
+                    UsageTracker.logImageUsage('seedream-4-5', 1, 'marketing_newbie', '제작 (이미지 수정)');
                 } else {
                     throw new Error('No image URL in response');
                 }
@@ -329,7 +338,7 @@ function Creator({ topic, setTopic, generatedImageUrl, setGeneratedImageUrl, onS
                             alignItems: 'center',
                             gap: '8px'
                         }}>
-                            <PenTool size={18} color="#FF007A" /> 텍스트 생성
+                            <PenTool size={18} color="#7A4AE2" /> 텍스트 생성
                         </h3>
                         <input
                             value={topic}
@@ -344,7 +353,7 @@ function Creator({ topic, setTopic, generatedImageUrl, setGeneratedImageUrl, onS
                                 fontSize: '14px',
                                 outline: 'none'
                             }}
-                            onFocus={(e) => e.target.style.borderColor = '#FF007A'}
+                            onFocus={(e) => e.target.style.borderColor = '#7A4AE2'}
                             onBlur={(e) => e.target.style.borderColor = '#E2E8F0'}
                         />
                         <button
@@ -407,7 +416,7 @@ function Creator({ topic, setTopic, generatedImageUrl, setGeneratedImageUrl, onS
                             alignItems: 'center',
                             gap: '8px'
                         }}>
-                            <ImageIcon size={18} color="#FF007A" /> 현실적 인물 이미지 생성
+                            <ImageIcon size={18} color="#7A4AE2" /> 현실적 인물 이미지 생성
                         </h3>
 
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -569,9 +578,9 @@ function Creator({ topic, setTopic, generatedImageUrl, setGeneratedImageUrl, onS
                                                 fontSize: '11px',
                                                 fontWeight: imgSettings.aspectRatio === ratio.value ? '700' : '500',
                                                 borderRadius: '8px',
-                                                border: imgSettings.aspectRatio === ratio.value ? '2px solid #FF007A' : '1px solid #E2E8F0',
-                                                backgroundColor: imgSettings.aspectRatio === ratio.value ? '#FDF2F8' : 'white',
-                                                color: imgSettings.aspectRatio === ratio.value ? '#FF007A' : '#64748B',
+                                                border: imgSettings.aspectRatio === ratio.value ? '2px solid #7A4AE2' : '1px solid #E2E8F0',
+                                                backgroundColor: imgSettings.aspectRatio === ratio.value ? '#F3E8FF' : 'white',
+                                                color: imgSettings.aspectRatio === ratio.value ? '#7A4AE2' : '#64748B',
                                                 cursor: 'pointer',
                                                 transition: 'all 0.15s'
                                             }}
@@ -590,14 +599,14 @@ function Creator({ topic, setTopic, generatedImageUrl, setGeneratedImageUrl, onS
                                 width: '100%',
                                 padding: '16px',
                                 marginTop: '16px',
-                                background: 'linear-gradient(135deg, #FF007A 0%, #FF5BA3 100%)',
+                                background: 'linear-gradient(135deg, #7A4AE2 0%, #9E7CF0 100%)',
                                 color: 'white',
                                 border: 'none',
                                 borderRadius: '12px',
                                 fontWeight: '700',
                                 fontSize: '14px',
                                 cursor: 'pointer',
-                                boxShadow: '0 4px 16px rgba(255,0,122,0.3)',
+                                boxShadow: '0 4px 16px rgba(122,74,226,0.3)',
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
@@ -675,7 +684,7 @@ function Creator({ topic, setTopic, generatedImageUrl, setGeneratedImageUrl, onS
                                             fontSize: '14px',
                                             outline: 'none'
                                         }}
-                                        onFocus={(e) => e.target.style.borderColor = '#FF007A'}
+                                        onFocus={(e) => e.target.style.borderColor = '#7A4AE2'}
                                         onBlur={(e) => e.target.style.borderColor = '#E2E8F0'}
                                     />
                                     <button
@@ -696,27 +705,49 @@ function Creator({ topic, setTopic, generatedImageUrl, setGeneratedImageUrl, onS
                                     </button>
                                 </div>
 
-                                <button
-                                    onClick={() => onSendToStudio(generatedImageUrl, topic, imgSettings.aspectRatio)}
-                                    style={{
-                                        width: '100%',
-                                        padding: '18px',
-                                        backgroundColor: '#FF007A',
-                                        color: 'white',
-                                        border: 'none',
-                                        borderRadius: '14px',
-                                        fontWeight: '700',
-                                        fontSize: '15px',
-                                        cursor: 'pointer',
-                                        boxShadow: '0 4px 20px rgba(255,0,122,0.25)',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        gap: '8px'
-                                    }}
-                                >
-                                    <Palette size={18} /> 디자인 스튜디오에서 꾸미기
-                                </button>
+                                <div style={{ display: 'flex', gap: '12px' }}>
+                                    <button
+                                        onClick={() => onSaveToHistory(generatedImageUrl, topic)}
+                                        style={{
+                                            flex: 1,
+                                            padding: '18px',
+                                            backgroundColor: '#1E293B',
+                                            color: 'white',
+                                            border: 'none',
+                                            borderRadius: '14px',
+                                            fontWeight: '700',
+                                            fontSize: '15px',
+                                            cursor: 'pointer',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            gap: '8px'
+                                        }}
+                                    >
+                                        <FolderPlus size={18} /> 보관하기
+                                    </button>
+                                    <button
+                                        onClick={() => onSendToStudio(generatedImageUrl, topic, imgSettings.aspectRatio)}
+                                        style={{
+                                            flex: 1,
+                                            padding: '18px',
+                                            backgroundColor: '#7A4AE2',
+                                            color: 'white',
+                                            border: 'none',
+                                            borderRadius: '14px',
+                                            fontWeight: '700',
+                                            fontSize: '15px',
+                                            cursor: 'pointer',
+                                            boxShadow: '0 4px 20px rgba(122,74,226,0.25)',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            gap: '8px'
+                                        }}
+                                    >
+                                        <Palette size={18} /> 스튜디오에서 꾸미기
+                                    </button>
+                                </div>
                             </div>
                         </>
                     ) : (
