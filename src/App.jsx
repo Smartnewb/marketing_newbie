@@ -13,6 +13,7 @@ function App() {
   const [generatedImageUrl, setGeneratedImageUrl] = useState('');
   const [canvasBg, setCanvasBg] = useState('');
   const [canvasObjects, setCanvasObjects] = useState([]);
+  const [canvasAspectRatio, setCanvasAspectRatio] = useState('1:1');
   const [history, setHistory] = useState([]);
   const [showToast, setShowToast] = useState(false);
 
@@ -22,8 +23,9 @@ function App() {
     setActiveTab('create');
   };
 
-  const sendToStudio = (imageUrl, topicText) => {
+  const sendToStudio = (imageUrl, topicText, aspectRatio = '1:1') => {
     setCanvasBg(imageUrl);
+    setCanvasAspectRatio(aspectRatio);
     setCanvasObjects([{
       id: Date.now(),
       type: 'text',
@@ -34,19 +36,19 @@ function App() {
       bg: 'rgba(0,0,0,0.5)',
       fontSize: 32,
       fontWeight: 'bold',
+      fontFamily: 'sans-serif',
       textAlign: 'center',
       borderRadius: 8,
       opacity: 1,
       strokeWidth: 0,
       strokeColor: '#000000',
-      shadowBlur: 0,
-      shadowColor: 'rgba(0,0,0,0.5)',
       isGradient: false,
-      gradientStart: '#FF007A',
-      gradientStartAlpha: 1,
-      gradientEnd: '#6366F1',
-      gradientEndAlpha: 1,
-      gradientCoords: { x1: 0.5, y1: 0, x2: 0.5, y2: 1 }
+      gradientStops: [
+        { position: 0, color: '#FF007A', alpha: 1 },
+        { position: 100, color: '#6366F1', alpha: 1 }
+      ],
+      gradientAngle: 180,
+      effects: []
     }]);
     setActiveTab('studio');
   };
@@ -66,7 +68,7 @@ function App() {
   const openFromHistory = (item) => {
     setCanvasBg(item.image);
     setCanvasObjects([{
-      id: 1,
+      id: Date.now(),
       type: 'text',
       text: item.topic,
       x: 50, y: 50,
@@ -74,19 +76,19 @@ function App() {
       color: '#fff',
       fontSize: 24,
       fontWeight: 'bold',
+      fontFamily: 'sans-serif',
       bg: 'rgba(0,0,0,0.5)',
       opacity: 1,
       borderRadius: 8,
       strokeWidth: 0,
       strokeColor: '#000',
-      shadowBlur: 0,
-      shadowColor: 'rgba(0,0,0,0.5)',
       isGradient: false,
-      gradientStart: '#FF007A',
-      gradientStartAlpha: 1,
-      gradientEnd: '#6366F1',
-      gradientEndAlpha: 1,
-      gradientCoords: { x1: 0.5, y1: 0, x2: 0.5, y2: 1 }
+      gradientStops: [
+        { position: 0, color: '#FF007A', alpha: 1 },
+        { position: 100, color: '#6366F1', alpha: 1 }
+      ],
+      gradientAngle: 180,
+      effects: []
     }]);
     setActiveTab('studio');
   };
@@ -125,7 +127,7 @@ function App() {
         }}>
           <Heart fill="white" color="white" size={22} />
         </div>
-        
+
         <nav style={{ display: 'flex', flexDirection: 'column', width: '100%', gap: '8px', padding: '0 8px' }}>
           {menus.map(menu => (
             <button
@@ -167,9 +169,9 @@ function App() {
           flexShrink: 0
         }}>
           <h2 style={{ fontWeight: '700', fontSize: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            {activeTab === 'studio' ? '🎨 디자인 스튜디오' : 
-             activeTab === 'planner' ? '💡 아이디어 기획' : 
-             activeTab === 'create' ? '✨ 컨텐츠 제작' : '📂 보관함'}
+            {activeTab === 'studio' ? '🎨 디자인 스튜디오' :
+              activeTab === 'planner' ? '💡 아이디어 기획' :
+                activeTab === 'create' ? '✨ 컨텐츠 제작' : '📂 보관함'}
             {activeTab === 'studio' && (
               <span style={{
                 fontSize: '11px',
@@ -205,6 +207,8 @@ function App() {
               setCanvasBg={setCanvasBg}
               canvasObjects={canvasObjects}
               setCanvasObjects={setCanvasObjects}
+              canvasAspectRatio={canvasAspectRatio}
+              setCanvasAspectRatio={setCanvasAspectRatio}
               onSave={saveToHistory}
               topic={topic}
             />

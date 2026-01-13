@@ -697,7 +697,7 @@ function Creator({ topic, setTopic, generatedImageUrl, setGeneratedImageUrl, onS
                                 </div>
 
                                 <button
-                                    onClick={() => onSendToStudio(generatedImageUrl, topic)}
+                                    onClick={() => onSendToStudio(generatedImageUrl, topic, imgSettings.aspectRatio)}
                                     style={{
                                         width: '100%',
                                         padding: '18px',
