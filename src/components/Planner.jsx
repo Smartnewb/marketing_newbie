@@ -36,7 +36,7 @@ function Planner({ onUseIdea }) {
                     'Authorization': `Bearer ${apiKey}`
                 },
                 body: JSON.stringify({
-                    model: 'gpt-4o-mini',
+                    model: 'gpt-5.2',
                     messages: [
                         {
                             role: 'system',
