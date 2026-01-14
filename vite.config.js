@@ -4,6 +4,7 @@ import react from '@vitejs/plugin-react'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
+  base: '/marketing_newbie/',
   server: {
     proxy: {
       '/api/seedream': {
@@ -17,3 +18,4 @@ export default defineConfig({
     }
   }
 })
+

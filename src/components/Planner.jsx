@@ -113,7 +113,8 @@ function Planner({ onUseIdea }) {
         try {
             if (!apiKey) throw new Error("No API Key");
 
-            const response = await fetch('https://api.openai.com/v1/chat/completions', {
+            // GPT-5.2 Responses API 사용
+            const response = await fetch('https://api.openai.com/v1/responses', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -121,28 +122,21 @@ function Planner({ onUseIdea }) {
                 },
                 body: JSON.stringify({
                     model: 'gpt-5.2',
-                    messages: [
-                        {
-                            role: 'system',
-                            content: `You are a creative marketing planner.
-                            Generate 4 trendy content ideas based on the user's keyword.
-                            Target audience: 20s in Korea.
-                            
-                            Return a JSON array with objects:
-                            {
-                                "type": "insta_story" | "insta_feed" | "reels_script" | "community",
-                                "title": "Catchy Title",
-                                "desc": "Short description",
-                                "hook": "One-liner hook"
-                            }`
-                        },
-                        {
-                            role: 'user',
-                            content: `키워드: "${planTopic}"
-                            관련된 다양한 포맷의 콘텐츠 아이디어 4개를 JSON으로 제안해줘.`
-                        }
-                    ],
-                    temperature: 0.8
+                    input: `You are a creative marketing planner.
+Generate 4 trendy content ideas based on the keyword: "${planTopic}".
+Target audience: 20s in Korea.
+
+Return a JSON array with objects:
+{
+    "type": "insta_story" | "insta_feed" | "reels_script" | "community",
+    "title": "Catchy Title",
+    "desc": "Short description",
+    "hook": "One-liner hook"
+}
+
+관련된 다양한 포맷의 콘텐츠 아이디어 4개를 JSON으로 제안해줘.`,
+                    reasoning: { effort: 'low' },
+                    text: { verbosity: 'medium' }
                 })
             });
 
@@ -151,18 +145,18 @@ function Planner({ onUseIdea }) {
 
             let ideas = [];
             try {
-                const content = data.choices[0].message.content;
+                // Responses API는 output 필드에 결과가 있음
+                const content = data.output?.[0]?.content?.[0]?.text || data.output_text || JSON.stringify(data);
                 const jsonMatch = content.match(/\[[\s\S]*\]/);
                 ideas = jsonMatch ? JSON.parse(jsonMatch[0]) : JSON.parse(content);
             } catch (e) {
                 console.error("JSON Parse Error", e);
-                // Fallback attempt
                 throw new Error("Failed to parse ideas");
             }
             setPlanIdeas(ideas);
 
             // Log Usage
-            UsageTracker.logTextUsage('gpt-5.2', 150, 400, 'default_user', 'Planner');
+            UsageTracker.logTextUsage('gpt-5.2', 150, 400, 'marketing_newbie', '기획');
 
         } catch (error) {
             console.error("Planning Error:", error);
@@ -307,7 +301,11 @@ ${profileContext}
 ${localStorage.getItem('brand_knowledge_vectors') ? JSON.parse(localStorage.getItem('brand_knowledge_vectors')).map(f => `- ${f.name}`).join('\n') : '(No specific documents)'}`
             };
 
-            const response = await fetch('https://api.openai.com/v1/chat/completions', {
+            // GPT-5.2 Responses API 사용
+            const conversationHistory = messages.map(m => `${m.role === 'user' ? 'User' : 'Assistant'}: ${m.content}`).join('\n');
+            const fullInput = `${systemPrompt.content}\n\n[Conversation History]\n${conversationHistory}\n\nUser: ${userMsg.content}`;
+
+            const response = await fetch('https://api.openai.com/v1/responses', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -315,21 +313,27 @@ ${localStorage.getItem('brand_knowledge_vectors') ? JSON.parse(localStorage.getI
                 },
                 body: JSON.stringify({
                     model: 'gpt-5.2',
-                    messages: [systemPrompt, ...messages, userMsg],
-                    temperature: isResearchMode ? 0.5 : 0.9, // Lower temp for research
-                    max_tokens: 1500
+                    input: fullInput,
+                    reasoning: { effort: isResearchMode ? 'medium' : 'low' },
+                    text: { verbosity: 'medium' }
                 })
             });
 
-            if (!response.ok) throw new Error("API Error");
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                console.error('API Error:', errorData);
+                throw new Error("API Error");
+            }
             const data = await response.json();
             if (data.error) throw new Error(data.error.message);
 
-            const botMsg = data.choices[0].message;
+            // Responses API 응답 파싱
+            const botContent = data.output?.[0]?.content?.[0]?.text || data.output_text || '응답을 처리하는 중 오류가 발생했어요.';
+            const botMsg = { role: 'assistant', content: botContent };
             setMessages(prev => [...prev, botMsg]);
 
             // Log Usage
-            UsageTracker.logTextUsage('gpt-5.2', botMsg.content.length / 4, botMsg.content.length / 3, 'default_user', 'Chat');
+            UsageTracker.logTextUsage('gpt-5.2', botContent.length / 4, botContent.length / 3, 'marketing_newbie', 'AI 파트너');
 
         } catch (error) {
             console.error("Chat Error:", error);
