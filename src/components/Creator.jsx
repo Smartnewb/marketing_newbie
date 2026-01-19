@@ -10,24 +10,62 @@ const ASPECT_RATIOS = [
     { name: '3:4', value: '3:4', width: 768, height: 1024 }
 ];
 
+// 한국어 → 영어 키워드 번역 딕셔너리 (API 비용 절약)
+const KO_EN_DICTIONARY = {
+    // 인물
+    '여성': 'woman', '여자': 'woman', '남성': 'man', '남자': 'man', '커플': 'couple',
+    '20대': 'in their 20s', '30대': 'in their 30s', '10대': 'teenager',
+    '대학생': 'college student', '직장인': 'office worker', '사회초년생': 'young professional',
+    '한국인': 'Korean', '한국': 'Korean', '동양인': 'Asian', '서양인': 'Western',
+    // 표정/행동
+    '웃는': 'smiling', '웃고있는': 'smiling', '미소': 'smiling', '밝은': 'bright cheerful',
+    '행복한': 'happy', '설레는': 'excited romantic', '수줍은': 'shy', '당당한': 'confident',
+    '셀카': 'selfie', '사진': 'photo', '포즈': 'posing',
+    // 장소
+    '카페': 'cozy cafe', '커피숍': 'coffee shop', '캠퍼스': 'university campus',
+    '도서관': 'library', '공원': 'park', '거리': 'street', '야경': 'night city view',
+    '바다': 'beach ocean', '산': 'mountain', '레스토랑': 'restaurant', '술집': 'bar lounge',
+    '집': 'cozy home interior', '방': 'cozy room', '침실': 'bedroom',
+    // 분위기
+    '따뜻한': 'warm', '차가운': 'cool', '로맨틱': 'romantic', '감성': 'aesthetic moody',
+    '트렌디': 'trendy modern', '빈티지': 'vintage retro', '깔끔한': 'clean minimal',
+    '자연스러운': 'natural candid', '일상': 'everyday lifestyle',
+    // 조명
+    '조명': 'lighting', '햇살': 'sunlight golden hour', '야간': 'night', '낮': 'daytime',
+    // 옷차림
+    '캐주얼': 'casual outfit', '정장': 'formal suit', '원피스': 'dress', '청바지': 'jeans',
+    // 소품
+    '커피': 'holding coffee cup', '핸드폰': 'holding phone', '책': 'reading book',
+    '노트북': 'using laptop', '꽃': 'flowers', '선글라스': 'sunglasses',
+    // 계절/날씨
+    '봄': 'spring', '여름': 'summer', '가을': 'autumn fall', '겨울': 'winter',
+    '눈': 'snow', '비': 'rain', '맑은': 'sunny clear',
+};
+
+// 한국어를 영어로 변환하는 함수 (API 없이 딕셔너리 사용)
+const translateKoreanToEnglish = (koreanText) => {
+    let result = koreanText;
+
+    // 딕셔너리의 모든 한국어 키워드를 영어로 치환
+    Object.entries(KO_EN_DICTIONARY).forEach(([ko, en]) => {
+        const regex = new RegExp(ko, 'g');
+        result = result.replace(regex, en);
+    });
+
+    // 기본 프롬프트 추가 (고품질 이미지 생성을 위해)
+    const basePrompt = 'realistic photo, highly detailed face, 8k, photorealistic, cinematic lighting, professional photography, natural lighting';
+
+    return `${result}, ${basePrompt}`;
+};
+
 function Creator({ topic, setTopic, generatedImageUrl, setGeneratedImageUrl, onSendToStudio, onSaveToHistory }) {
     const [isGeneratingText, setIsGeneratingText] = useState(false);
     const [generatedContent, setGeneratedContent] = useState('');
     const [isGeneratingImage, setIsGeneratingImage] = useState(false);
     const [currentPrompt, setCurrentPrompt] = useState('');
     const [refineInput, setRefineInput] = useState('');
-    const [customPrompt, setCustomPrompt] = useState('');
-    const [isEnhancingPrompt, setIsEnhancingPrompt] = useState(false);
-
-    const [imgSettings, setImgSettings] = useState({
-        count: '1',
-        gender: 'female',
-        age: '20대 초반',
-        country: 'Korean',
-        situation: '',
-        background: '',
-        aspectRatio: '1:1'
-    });
+    const [imagePrompt, setImagePrompt] = useState(''); // 단일 프롬프트 입력
+    const [aspectRatio, setAspectRatio] = useState('1:1');
 
     const handleGenerateText = async () => {
         if (!topic) return;
@@ -157,30 +195,15 @@ function Creator({ topic, setTopic, generatedImageUrl, setGeneratedImageUrl, onS
     };
 
     const handleGenerateImage = async () => {
-        setIsGeneratingImage(true);
+        if (!imagePrompt.trim()) return;
 
-        const { count, gender, age, country, situation, background, aspectRatio } = imgSettings;
+        setIsGeneratingImage(true);
         const ratioConfig = ASPECT_RATIOS.find(r => r.value === aspectRatio) || ASPECT_RATIOS[0];
 
-        let finalPrompt = '';
-
-        // 커스텀 프롬프트가 있으면 GPT-5.2로 향상시키기
-        if (customPrompt.trim()) {
-            finalPrompt = await enhancePromptWithGPT(customPrompt);
-        } else {
-            // 기존 설정 기반 프롬프트 생성
-            const genderMap = {
-                'female': 'woman',
-                'male': 'man',
-                'mixed': 'couple'
-            };
-
-            const peopleDesc = `${count === '1' ? 'a single' : count} ${age} ${country} ${genderMap[gender] || 'person'}`;
-            const contextDesc = situation ? `, ${situation}` : '';
-            const bgDesc = background ? `, in ${background}` : '';
-
-            finalPrompt = `realistic photo of ${peopleDesc}${contextDesc}${bgDesc}, highly detailed face, 8k, photorealistic, cinematic lighting, shot on 35mm lens, depth of field, dating app aesthetic, natural lighting, high quality portrait, professional photography`;
-        }
+        // 한국어 → 영어 변환 (API 비용 없이 딕셔너리 사용)
+        const finalPrompt = translateKoreanToEnglish(imagePrompt);
+        console.log('원본 프롬프트:', imagePrompt);
+        console.log('변환된 프롬프트:', finalPrompt);
 
         setCurrentPrompt(finalPrompt);
 
@@ -201,7 +224,7 @@ function Creator({ topic, setTopic, generatedImageUrl, setGeneratedImageUrl, onS
                         sequential_image_generation: 'disabled',
                         response_format: 'url',
                         size: '2K',
-                        aspect_ratio: aspectRatio, // 비율 적용
+                        aspect_ratio: aspectRatio,
                         stream: false,
                         watermark: false
                     })
@@ -242,7 +265,6 @@ function Creator({ topic, setTopic, generatedImageUrl, setGeneratedImageUrl, onS
         const newPrompt = `${currentPrompt}, ${refineInput}`;
         setCurrentPrompt(newPrompt);
 
-        const { aspectRatio } = imgSettings;
         const ratioConfig = ASPECT_RATIOS.find(r => r.value === aspectRatio) || ASPECT_RATIOS[0];
 
         const arkApiKey = import.meta.env.VITE_ARK_API_KEY;
@@ -419,168 +441,56 @@ function Creator({ topic, setTopic, generatedImageUrl, setGeneratedImageUrl, onS
                             <ImageIcon size={18} color="#7A4AE2" /> 현실적 인물 이미지 생성
                         </h3>
 
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                                <div>
-                                    <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: '#64748B', marginBottom: '6px' }}>
-                                        <User size={12} style={{ marginRight: '4px' }} />인원
-                                    </label>
-                                    <select
-                                        value={imgSettings.count}
-                                        onChange={e => setImgSettings({ ...imgSettings, count: e.target.value })}
-                                        style={{
-                                            width: '100%',
-                                            padding: '10px 12px',
-                                            border: '1px solid #E2E8F0',
-                                            borderRadius: '10px',
-                                            fontSize: '13px',
-                                            backgroundColor: 'white'
-                                        }}
-                                    >
-                                        <option value="1">1명</option>
-                                        <option value="2">2명 (커플)</option>
-                                        <option value="group of">여러 명</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: '#64748B', marginBottom: '6px' }}>
-                                        <Users size={12} style={{ marginRight: '4px' }} />성별
-                                    </label>
-                                    <select
-                                        value={imgSettings.gender}
-                                        onChange={e => setImgSettings({ ...imgSettings, gender: e.target.value })}
-                                        style={{
-                                            width: '100%',
-                                            padding: '10px 12px',
-                                            border: '1px solid #E2E8F0',
-                                            borderRadius: '10px',
-                                            fontSize: '13px',
-                                            backgroundColor: 'white'
-                                        }}
-                                    >
-                                        <option value="female">여성</option>
-                                        <option value="male">남성</option>
-                                        <option value="mixed">혼성</option>
-                                    </select>
-                                </div>
-                            </div>
-
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                                <div>
-                                    <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: '#64748B', marginBottom: '6px' }}>나이대</label>
-                                    <input
-                                        type="text"
-                                        value={imgSettings.age}
-                                        onChange={e => setImgSettings({ ...imgSettings, age: e.target.value })}
-                                        placeholder="예: 20대 초반"
-                                        style={{
-                                            width: '100%',
-                                            padding: '10px 12px',
-                                            border: '1px solid #E2E8F0',
-                                            borderRadius: '10px',
-                                            fontSize: '13px'
-                                        }}
-                                    />
-                                </div>
-                                <div>
-                                    <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: '#64748B', marginBottom: '6px' }}>국적/스타일</label>
-                                    <input
-                                        type="text"
-                                        value={imgSettings.country}
-                                        onChange={e => setImgSettings({ ...imgSettings, country: e.target.value })}
-                                        placeholder="예: Korean"
-                                        style={{
-                                            width: '100%',
-                                            padding: '10px 12px',
-                                            border: '1px solid #E2E8F0',
-                                            borderRadius: '10px',
-                                            fontSize: '13px'
-                                        }}
-                                    />
-                                </div>
-                            </div>
-
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                            {/* 간소화된 프롬프트 입력 */}
                             <div>
-                                <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: '#64748B', marginBottom: '6px' }}>상황 (행동)</label>
-                                <input
-                                    type="text"
-                                    value={imgSettings.situation}
-                                    onChange={e => setImgSettings({ ...imgSettings, situation: e.target.value })}
-                                    placeholder="예: drinking coffee, laughing, reading"
-                                    style={{
-                                        width: '100%',
-                                        padding: '10px 12px',
-                                        border: '1px solid #E2E8F0',
-                                        borderRadius: '10px',
-                                        fontSize: '13px'
-                                    }}
-                                />
-                            </div>
-
-                            <div>
-                                <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: '#64748B', marginBottom: '6px' }}>
-                                    <MapPin size={12} style={{ marginRight: '4px' }} />배경 장소
-                                </label>
-                                <input
-                                    type="text"
-                                    value={imgSettings.background}
-                                    onChange={e => setImgSettings({ ...imgSettings, background: e.target.value })}
-                                    placeholder="예: cafe, campus, park, night street"
-                                    style={{
-                                        width: '100%',
-                                        padding: '10px 12px',
-                                        border: '1px solid #E2E8F0',
-                                        borderRadius: '10px',
-                                        fontSize: '13px'
-                                    }}
-                                />
-                            </div>
-
-                            {/* Custom Prompt */}
-                            <div style={{ borderTop: '1px solid #F1F5F9', paddingTop: '12px', marginTop: '4px' }}>
-                                <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: '#64748B', marginBottom: '6px' }}>
-                                    <Wand2 size={12} style={{ marginRight: '4px' }} />직접 프롬프트 작성 (선택)
+                                <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', color: '#1E293B', marginBottom: '8px' }}>
+                                    ✨ 원하는 이미지를 한국어로 설명하세요
                                 </label>
                                 <textarea
-                                    value={customPrompt}
-                                    onChange={e => setCustomPrompt(e.target.value)}
-                                    placeholder="직접 원하는 이미지를 설명하세요. GPT-5.2가 프롬프트를 자동으로 향상시킵니다. (예: 카페에서 웃고있는 20대 여성, 따뜻한 조명)"
+                                    value={imagePrompt}
+                                    onChange={e => setImagePrompt(e.target.value)}
+                                    placeholder="예: 카페에서 커피 마시며 웃는 20대 한국인 여성, 따뜻한 조명, 감성적인 분위기"
                                     style={{
                                         width: '100%',
-                                        padding: '12px',
-                                        border: '1px solid #E2E8F0',
-                                        borderRadius: '10px',
-                                        fontSize: '13px',
+                                        padding: '14px',
+                                        border: '2px solid #E2E8F0',
+                                        borderRadius: '12px',
+                                        fontSize: '14px',
                                         resize: 'vertical',
-                                        minHeight: '80px',
-                                        lineHeight: '1.5',
-                                        backgroundColor: '#FEFCE8'
+                                        minHeight: '100px',
+                                        lineHeight: '1.6',
+                                        backgroundColor: '#FEFCE8',
+                                        transition: 'border-color 0.2s'
                                     }}
+                                    onFocus={e => e.target.style.borderColor = '#7A4AE2'}
+                                    onBlur={e => e.target.style.borderColor = '#E2E8F0'}
                                 />
-                                <div style={{ fontSize: '10px', color: '#94A3B8', marginTop: '4px' }}>
-                                    ✨ GPT-5.2가 입력한 설명을 전문 사진 프롬프트로 향상시킵니다
+                                <div style={{ fontSize: '11px', color: '#64748B', marginTop: '8px', lineHeight: '1.5' }}>
+                                    💡 <strong>팁:</strong> 인물, 장소, 분위기, 행동 등을 자유롭게 입력하세요.<br />
+                                    예) "캠퍼스에서 책 읽는 대학생 남자", "야경 배경의 로맨틱한 커플"
                                 </div>
                             </div>
 
                             {/* Aspect Ratio */}
                             <div>
-                                <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: '#64748B', marginBottom: '6px' }}>
+                                <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: '#64748B', marginBottom: '8px' }}>
                                     📐 이미지 비율
                                 </label>
-                                <div style={{ display: 'flex', gap: '6px' }}>
+                                <div style={{ display: 'flex', gap: '8px' }}>
                                     {ASPECT_RATIOS.map(ratio => (
                                         <button
                                             key={ratio.value}
-                                            onClick={() => setImgSettings({ ...imgSettings, aspectRatio: ratio.value })}
+                                            onClick={() => setAspectRatio(ratio.value)}
                                             style={{
                                                 flex: 1,
-                                                padding: '8px 4px',
-                                                fontSize: '11px',
-                                                fontWeight: imgSettings.aspectRatio === ratio.value ? '700' : '500',
-                                                borderRadius: '8px',
-                                                border: imgSettings.aspectRatio === ratio.value ? '2px solid #7A4AE2' : '1px solid #E2E8F0',
-                                                backgroundColor: imgSettings.aspectRatio === ratio.value ? '#F3E8FF' : 'white',
-                                                color: imgSettings.aspectRatio === ratio.value ? '#7A4AE2' : '#64748B',
+                                                padding: '10px 6px',
+                                                fontSize: '12px',
+                                                fontWeight: aspectRatio === ratio.value ? '700' : '500',
+                                                borderRadius: '10px',
+                                                border: aspectRatio === ratio.value ? '2px solid #7A4AE2' : '1px solid #E2E8F0',
+                                                backgroundColor: aspectRatio === ratio.value ? '#F3E8FF' : 'white',
+                                                color: aspectRatio === ratio.value ? '#7A4AE2' : '#64748B',
                                                 cursor: 'pointer',
                                                 transition: 'all 0.15s'
                                             }}
@@ -594,37 +504,36 @@ function Creator({ topic, setTopic, generatedImageUrl, setGeneratedImageUrl, onS
 
                         <button
                             onClick={handleGenerateImage}
-                            disabled={isGeneratingImage || isEnhancingPrompt}
+                            disabled={isGeneratingImage || !imagePrompt.trim()}
                             style={{
                                 width: '100%',
                                 padding: '16px',
                                 marginTop: '16px',
-                                background: 'linear-gradient(135deg, #7A4AE2 0%, #9E7CF0 100%)',
+                                background: (!imagePrompt.trim() || isGeneratingImage)
+                                    ? '#CBD5E1'
+                                    : 'linear-gradient(135deg, #7A4AE2 0%, #9E7CF0 100%)',
                                 color: 'white',
                                 border: 'none',
                                 borderRadius: '12px',
                                 fontWeight: '700',
                                 fontSize: '14px',
-                                cursor: 'pointer',
-                                boxShadow: '0 4px 16px rgba(122,74,226,0.3)',
+                                cursor: (!imagePrompt.trim() || isGeneratingImage) ? 'not-allowed' : 'pointer',
+                                boxShadow: (!imagePrompt.trim() || isGeneratingImage)
+                                    ? 'none'
+                                    : '0 4px 16px rgba(122,74,226,0.3)',
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
-                                gap: '8px',
-                                opacity: (isGeneratingImage || isEnhancingPrompt) ? 0.7 : 1
+                                gap: '8px'
                             }}
                         >
-                            {isEnhancingPrompt ? (
+                            {isGeneratingImage ? (
                                 <>
-                                    <Wand2 size={16} className="animate-pulse" /> 프롬프트 향상중...
-                                </>
-                            ) : isGeneratingImage ? (
-                                <>
-                                    <RefreshCw size={16} className="animate-spin" /> 사진 촬영중...
+                                    <RefreshCw size={16} className="animate-spin" /> 이미지 생성중...
                                 </>
                             ) : (
                                 <>
-                                    <ImageIcon size={16} /> 고화질 실사 생성
+                                    <ImageIcon size={16} /> 이미지 생성하기
                                 </>
                             )}
                         </button>
