@@ -140,13 +140,19 @@ Return a JSON array with objects:
                 })
             });
 
-            if (!response.ok) throw new Error("API Error");
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                console.error('API Error Response:', errorData);
+                throw new Error(errorData?.error?.message || "API Error");
+            }
             const data = await response.json();
+            console.log('GPT-5.2 Response:', data);
 
             let ideas = [];
             try {
                 // Responses API는 output 필드에 결과가 있음
-                const content = data.output?.[0]?.content?.[0]?.text || data.output_text || JSON.stringify(data);
+                const content = data.output?.[0]?.content?.[0]?.text || data.output?.[0]?.content?.find(c => c.type === 'output_text')?.text || JSON.stringify(data);
+                console.log('Parsed content:', content);
                 const jsonMatch = content.match(/\[[\s\S]*\]/);
                 ideas = jsonMatch ? JSON.parse(jsonMatch[0]) : JSON.parse(content);
             } catch (e) {
@@ -198,7 +204,12 @@ Return a JSON array with objects:
 
     // Chat Mode: Send Message
     const handleSendMessage = async () => {
-        if (!chatInput.trim()) return;
+        console.log('=== handleSendMessage 시작 ===');
+        console.log('chatInput:', chatInput);
+        if (!chatInput.trim()) {
+            console.log('입력값 없음, 리턴');
+            return;
+        }
 
         const userMsg = { role: 'user', content: chatInput };
         setMessages(prev => [...prev, userMsg]);
@@ -207,9 +218,14 @@ Return a JSON array with objects:
         setResearchStatus('');
 
         const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
+        console.log('API Key 존재:', !!apiKey);
 
         try {
-            if (!apiKey) throw new Error("No API Key");
+            if (!apiKey) {
+                console.error('API Key 없음!');
+                throw new Error("No API Key");
+            }
+            console.log('API 호출 시작...');
 
             // --- DEEP RESEARCH LOGIC ---
             let searchContext = "";
@@ -321,14 +337,16 @@ ${localStorage.getItem('brand_knowledge_vectors') ? JSON.parse(localStorage.getI
 
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({}));
-                console.error('API Error:', errorData);
-                throw new Error("API Error");
+                console.error('Chat API Error:', errorData);
+                throw new Error(errorData?.error?.message || "API Error");
             }
             const data = await response.json();
+            console.log('Chat GPT-5.2 Response:', data);
             if (data.error) throw new Error(data.error.message);
 
             // Responses API 응답 파싱
-            const botContent = data.output?.[0]?.content?.[0]?.text || data.output_text || '응답을 처리하는 중 오류가 발생했어요.';
+            const botContent = data.output?.[0]?.content?.[0]?.text || data.output?.[0]?.content?.find(c => c.type === 'output_text')?.text || '응답을 처리하는 중 오류가 발생했어요.';
+            console.log('Bot content:', botContent);
             const botMsg = { role: 'assistant', content: botContent };
             setMessages(prev => [...prev, botMsg]);
 
