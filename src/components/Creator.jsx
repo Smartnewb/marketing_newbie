@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { PenTool, ImageIcon, Send, Palette, User, Users, MapPin, Sparkles, RefreshCw, Wand2, RatioIcon, FolderPlus } from 'lucide-react';
+import { PenTool, ImageIcon, Send, Palette, User, Users, MapPin, Sparkles, RefreshCw, Wand2, RatioIcon, FolderPlus, ChevronLeft, ChevronRight } from 'lucide-react';
 import { UsageTracker } from '../utils/UsageTracker';
 
 const ASPECT_RATIOS = [
@@ -11,35 +11,38 @@ const ASPECT_RATIOS = [
 ];
 
 // 한국어 → 영어 키워드 번역 딕셔너리 (API 비용 절약)
+// 주의: 부분 매칭 문제를 피하기 위해 2글자 이상의 명확한 키워드만 사용
 const KO_EN_DICTIONARY = {
     // 인물
     '여성': 'woman', '여자': 'woman', '남성': 'man', '남자': 'man', '커플': 'couple',
-    '20대': 'in their 20s', '30대': 'in their 30s', '10대': 'teenager',
+    '20대 초반': 'early 20s', '20대 후반': 'late 20s', '20대': 'in their 20s',
+    '30대': 'in their 30s', '10대': 'teenager',
     '대학생': 'college student', '직장인': 'office worker', '사회초년생': 'young professional',
-    '한국인': 'Korean', '한국': 'Korean', '동양인': 'Asian', '서양인': 'Western',
+    '한국인': 'Korean', '한국 사람': 'Korean person', '동양인': 'Asian', '서양인': 'Western',
     // 표정/행동
-    '웃는': 'smiling', '웃고있는': 'smiling', '미소': 'smiling', '밝은': 'bright cheerful',
+    '웃는': 'smiling', '웃고있는': 'smiling', '미소': 'smiling', '밝은 표정': 'bright cheerful expression',
     '행복한': 'happy', '설레는': 'excited romantic', '수줍은': 'shy', '당당한': 'confident',
-    '셀카': 'selfie', '사진': 'photo', '포즈': 'posing',
+    '셀카': 'selfie', '포즈': 'posing',
     // 장소
-    '카페': 'cozy cafe', '커피숍': 'coffee shop', '캠퍼스': 'university campus',
-    '도서관': 'library', '공원': 'park', '거리': 'street', '야경': 'night city view',
-    '바다': 'beach ocean', '산': 'mountain', '레스토랑': 'restaurant', '술집': 'bar lounge',
-    '집': 'cozy home interior', '방': 'cozy room', '침실': 'bedroom',
+    '카페에서': 'at cozy cafe', '카페': 'cozy cafe', '커피숍': 'coffee shop', '캠퍼스': 'university campus',
+    '도서관': 'library', '공원에서': 'at park', '공원': 'park', '거리에서': 'on street', '야경': 'night city view',
+    '바다에서': 'at beach', '바다': 'beach ocean', '산에서': 'at mountain', '레스토랑': 'restaurant', '술집': 'bar lounge',
+    '집에서': 'at cozy home', '방에서': 'in cozy room', '침실': 'bedroom',
     // 분위기
-    '따뜻한': 'warm', '차가운': 'cool', '로맨틱': 'romantic', '감성': 'aesthetic moody',
-    '트렌디': 'trendy modern', '빈티지': 'vintage retro', '깔끔한': 'clean minimal',
-    '자연스러운': 'natural candid', '일상': 'everyday lifestyle',
+    '따뜻한': 'warm', '차가운': 'cool', '로맨틱한': 'romantic', '로맨틱': 'romantic', '감성적인': 'aesthetic moody',
+    '트렌디한': 'trendy modern', '트렌디': 'trendy modern', '빈티지': 'vintage retro', '깔끔한': 'clean minimal',
+    '자연스러운': 'natural candid', '일상적인': 'everyday lifestyle',
     // 조명
-    '조명': 'lighting', '햇살': 'sunlight golden hour', '야간': 'night', '낮': 'daytime',
+    '조명': 'lighting', '햇살': 'sunlight golden hour', '야간에': 'at night', '낮에': 'in daytime',
     // 옷차림
     '캐주얼': 'casual outfit', '정장': 'formal suit', '원피스': 'dress', '청바지': 'jeans',
-    // 소품
-    '커피': 'holding coffee cup', '핸드폰': 'holding phone', '책': 'reading book',
-    '노트북': 'using laptop', '꽃': 'flowers', '선글라스': 'sunglasses',
-    // 계절/날씨
-    '봄': 'spring', '여름': 'summer', '가을': 'autumn fall', '겨울': 'winter',
-    '눈': 'snow', '비': 'rain', '맑은': 'sunny clear',
+    // 소품 (명확한 문맥이 있는 표현만)
+    '커피 마시는': 'holding coffee cup', '커피를 마시는': 'holding coffee cup',
+    '핸드폰 보는': 'looking at phone', '책 읽는': 'reading book', '책을 읽는': 'reading book',
+    '노트북': 'using laptop', '꽃다발': 'flowers bouquet', '선글라스': 'sunglasses',
+    // 계절/날씨 (명확한 표현만)
+    '봄날': 'spring day', '여름날': 'summer day', '가을날': 'autumn day', '겨울날': 'winter day',
+    '눈 오는': 'snowing', '비 오는': 'rainy', '맑은 날': 'sunny clear day',
 };
 
 // 한국어를 영어로 변환하는 함수 (API 없이 딕셔너리 사용)
@@ -64,8 +67,10 @@ function Creator({ topic, setTopic, generatedImageUrl, setGeneratedImageUrl, onS
     const [isGeneratingImage, setIsGeneratingImage] = useState(false);
     const [currentPrompt, setCurrentPrompt] = useState('');
     const [refineInput, setRefineInput] = useState('');
-    const [imagePrompt, setImagePrompt] = useState(''); // 단일 프롬프트 입력
-    const [aspectRatio, setAspectRatio] = useState('1:1');
+    const [imagePrompt, setImagePrompt] = useState('한국인 20대 초반 남자 또는 여자'); // 기본값: 한국인 20대 초반
+    const [aspectRatio, setAspectRatio] = useState('3:4'); // 기본값: 세로 비율
+    const [imageHistory, setImageHistory] = useState([]); // 이미지 히스토리 (세션 내)
+    const [historyIndex, setHistoryIndex] = useState(-1); // 현재 보고 있는 이미지 인덱스
 
     const handleGenerateText = async () => {
         if (!topic) return;
@@ -194,6 +199,33 @@ function Creator({ topic, setTopic, generatedImageUrl, setGeneratedImageUrl, onS
         }
     };
 
+    // 히스토리에 이미지 추가하는 함수
+    const addToHistory = (url) => {
+        setImageHistory(prev => {
+            const newHistory = [...prev, url];
+            setHistoryIndex(newHistory.length - 1); // 최신 이미지로 이동
+            return newHistory;
+        });
+    };
+
+    // 이전 이미지로 이동
+    const goToPrevImage = () => {
+        if (historyIndex > 0) {
+            const newIndex = historyIndex - 1;
+            setHistoryIndex(newIndex);
+            setGeneratedImageUrl(imageHistory[newIndex]);
+        }
+    };
+
+    // 다음 이미지로 이동
+    const goToNextImage = () => {
+        if (historyIndex < imageHistory.length - 1) {
+            const newIndex = historyIndex + 1;
+            setHistoryIndex(newIndex);
+            setGeneratedImageUrl(imageHistory[newIndex]);
+        }
+    };
+
     const handleGenerateImage = async () => {
         if (!imagePrompt.trim()) return;
 
@@ -233,7 +265,9 @@ function Creator({ topic, setTopic, generatedImageUrl, setGeneratedImageUrl, onS
                 const data = await response.json();
 
                 if (data.data && data.data[0] && data.data[0].url) {
-                    setGeneratedImageUrl(data.data[0].url);
+                    const newUrl = data.data[0].url;
+                    setGeneratedImageUrl(newUrl);
+                    addToHistory(newUrl);
                     // Log Seedream 이미지 생성 비용
                     UsageTracker.logImageUsage('seedream-4-5', 1, 'marketing_newbie', '제작 (이미지)');
                 } else {
@@ -245,6 +279,7 @@ function Creator({ topic, setTopic, generatedImageUrl, setGeneratedImageUrl, onS
                 const encodedPrompt = encodeURIComponent(finalPrompt);
                 const url = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=${ratioConfig.width}&height=${ratioConfig.height}&nologo=true&seed=${Math.floor(Math.random() * 100000)}`;
                 setGeneratedImageUrl(url);
+                addToHistory(url);
             }
         } else {
             // Fallback to Pollinations API with correct dimensions
@@ -252,6 +287,7 @@ function Creator({ topic, setTopic, generatedImageUrl, setGeneratedImageUrl, onS
             const url = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=${ratioConfig.width}&height=${ratioConfig.height}&nologo=true&seed=${Math.floor(Math.random() * 100000)}`;
             setTimeout(() => {
                 setGeneratedImageUrl(url);
+                addToHistory(url);
             }, 1500);
         }
 
@@ -293,7 +329,9 @@ function Creator({ topic, setTopic, generatedImageUrl, setGeneratedImageUrl, onS
                 const data = await response.json();
 
                 if (data.data && data.data[0] && data.data[0].url) {
-                    setGeneratedImageUrl(data.data[0].url);
+                    const newUrl = data.data[0].url;
+                    setGeneratedImageUrl(newUrl);
+                    addToHistory(newUrl);
                     // Log Seedream 이미지 수정 비용
                     UsageTracker.logImageUsage('seedream-4-5', 1, 'marketing_newbie', '제작 (이미지 수정)');
                 } else {
@@ -305,6 +343,7 @@ function Creator({ topic, setTopic, generatedImageUrl, setGeneratedImageUrl, onS
                 const encodedPrompt = encodeURIComponent(newPrompt);
                 const url = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=${ratioConfig.width}&height=${ratioConfig.height}&nologo=true&seed=${Math.floor(Math.random() * 100000)}`;
                 setGeneratedImageUrl(url);
+                addToHistory(url);
             }
         } else {
             // Fallback to Pollinations API with aspect ratio
@@ -312,6 +351,7 @@ function Creator({ topic, setTopic, generatedImageUrl, setGeneratedImageUrl, onS
             const url = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=${ratioConfig.width}&height=${ratioConfig.height}&nologo=true&seed=${Math.floor(Math.random() * 100000)}`;
             setTimeout(() => {
                 setGeneratedImageUrl(url);
+                addToHistory(url);
             }, 1500);
         }
 
@@ -561,9 +601,37 @@ function Creator({ topic, setTopic, generatedImageUrl, setGeneratedImageUrl, onS
                                 alignItems: 'center',
                                 justifyContent: 'center',
                                 overflow: 'hidden',
-                                marginBottom: '16px',
-                                minHeight: 0
+                                marginBottom: '8px',
+                                minHeight: 0,
+                                position: 'relative'
                             }}>
+                                {/* 이전 이미지 버튼 - 항상 표시, 비활성화 시 반투명 */}
+                                <button
+                                    onClick={goToPrevImage}
+                                    disabled={historyIndex <= 0}
+                                    style={{
+                                        position: 'absolute',
+                                        left: '12px',
+                                        top: '50%',
+                                        transform: 'translateY(-50%)',
+                                        width: '40px',
+                                        height: '40px',
+                                        borderRadius: '50%',
+                                        backgroundColor: 'rgba(255,255,255,0.9)',
+                                        border: 'none',
+                                        boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                                        cursor: historyIndex > 0 ? 'pointer' : 'not-allowed',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        zIndex: 10,
+                                        transition: 'all 0.2s',
+                                        opacity: historyIndex > 0 ? 1 : 0.3
+                                    }}
+                                >
+                                    <ChevronLeft size={24} color="#1E293B" />
+                                </button>
+
                                 <img
                                     src={generatedImageUrl}
                                     alt="Generated"
@@ -575,7 +643,68 @@ function Creator({ topic, setTopic, generatedImageUrl, setGeneratedImageUrl, onS
                                         boxShadow: '0 4px 20px rgba(0,0,0,0.1)'
                                     }}
                                 />
+
+                                {/* 다음 이미지 버튼 - 항상 표시, 비활성화 시 반투명 */}
+                                <button
+                                    onClick={goToNextImage}
+                                    disabled={historyIndex >= imageHistory.length - 1}
+                                    style={{
+                                        position: 'absolute',
+                                        right: '12px',
+                                        top: '50%',
+                                        transform: 'translateY(-50%)',
+                                        width: '40px',
+                                        height: '40px',
+                                        borderRadius: '50%',
+                                        backgroundColor: 'rgba(255,255,255,0.9)',
+                                        border: 'none',
+                                        boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                                        cursor: historyIndex < imageHistory.length - 1 ? 'pointer' : 'not-allowed',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        zIndex: 10,
+                                        transition: 'all 0.2s',
+                                        opacity: historyIndex < imageHistory.length - 1 ? 1 : 0.3
+                                    }}
+                                >
+                                    <ChevronRight size={24} color="#1E293B" />
+                                </button>
                             </div>
+
+                            {/* 이미지 히스토리 인디케이터 */}
+                            {imageHistory.length > 1 && (
+                                <div style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    gap: '6px',
+                                    marginBottom: '12px'
+                                }}>
+                                    <span style={{ fontSize: '12px', color: '#64748B' }}>
+                                        {historyIndex + 1} / {imageHistory.length}
+                                    </span>
+                                    <div style={{ display: 'flex', gap: '4px', marginLeft: '8px' }}>
+                                        {imageHistory.map((_, idx) => (
+                                            <div
+                                                key={idx}
+                                                onClick={() => {
+                                                    setHistoryIndex(idx);
+                                                    setGeneratedImageUrl(imageHistory[idx]);
+                                                }}
+                                                style={{
+                                                    width: idx === historyIndex ? '16px' : '6px',
+                                                    height: '6px',
+                                                    borderRadius: '3px',
+                                                    backgroundColor: idx === historyIndex ? '#7A4AE2' : '#CBD5E1',
+                                                    cursor: 'pointer',
+                                                    transition: 'all 0.2s'
+                                                }}
+                                            />
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
 
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                                 <div style={{ display: 'flex', gap: '8px' }}>

@@ -95,6 +95,10 @@ function App() {
     setActiveTab('studio');
   };
 
+  const deleteFromHistory = (ids) => {
+    setHistory(prev => prev.filter(item => !ids.includes(item.id)));
+  };
+
   const menus = [
     { id: 'planner', icon: Lightbulb, label: '기획' },
     { id: 'create', icon: PenTool, label: '제작' },
@@ -233,6 +237,7 @@ function App() {
             <HistoryPanel
               history={history}
               onOpenItem={openFromHistory}
+              onDeleteItems={deleteFromHistory}
             />
           )}
         </div>
