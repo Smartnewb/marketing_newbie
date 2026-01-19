@@ -112,6 +112,8 @@ function Dashboard() {
             'seedream-4-5': 'Seedream 4.5 (이미지)',
             'seedream-4.5': 'Seedream 4.5 (이미지)',
             'seedream': 'Seedream (이미지)',
+            'pollinations-free': 'Pollinations (무료)',
+            'pollinations-fallback': 'Pollinations (Fallback)',
         };
         return translations[model] || model;
     };

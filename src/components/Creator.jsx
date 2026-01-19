@@ -280,14 +280,19 @@ function Creator({ topic, setTopic, generatedImageUrl, setGeneratedImageUrl, onS
                 const url = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=${ratioConfig.width}&height=${ratioConfig.height}&nologo=true&seed=${Math.floor(Math.random() * 100000)}`;
                 setGeneratedImageUrl(url);
                 addToHistory(url);
+                // Log Pollinations fallback (무료이므로 비용 0)
+                UsageTracker.logImageUsage('pollinations-fallback', 1, 'marketing_newbie', '제작 (Fallback)');
             }
         } else {
+            console.log('ARK API Key 없음 - Pollinations 사용');
             // Fallback to Pollinations API with correct dimensions
             const encodedPrompt = encodeURIComponent(finalPrompt);
             const url = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=${ratioConfig.width}&height=${ratioConfig.height}&nologo=true&seed=${Math.floor(Math.random() * 100000)}`;
             setTimeout(() => {
                 setGeneratedImageUrl(url);
                 addToHistory(url);
+                // Log Pollinations (무료이므로 비용 0)
+                UsageTracker.logImageUsage('pollinations-free', 1, 'marketing_newbie', '제작 (무료)');
             }, 1500);
         }
 
@@ -338,12 +343,14 @@ function Creator({ topic, setTopic, generatedImageUrl, setGeneratedImageUrl, onS
                     throw new Error('No image URL in response');
                 }
             } catch (error) {
-                console.error('Seedream API Error:', error);
+                console.error('Seedream API Error (Refine):', error);
                 // Fallback to Pollinations with aspect ratio
                 const encodedPrompt = encodeURIComponent(newPrompt);
                 const url = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=${ratioConfig.width}&height=${ratioConfig.height}&nologo=true&seed=${Math.floor(Math.random() * 100000)}`;
                 setGeneratedImageUrl(url);
                 addToHistory(url);
+                // Log Pollinations fallback
+                UsageTracker.logImageUsage('pollinations-fallback', 1, 'marketing_newbie', '제작 수정 (Fallback)');
             }
         } else {
             // Fallback to Pollinations API with aspect ratio
@@ -352,6 +359,8 @@ function Creator({ topic, setTopic, generatedImageUrl, setGeneratedImageUrl, onS
             setTimeout(() => {
                 setGeneratedImageUrl(url);
                 addToHistory(url);
+                // Log Pollinations
+                UsageTracker.logImageUsage('pollinations-free', 1, 'marketing_newbie', '제작 수정 (무료)');
             }, 1500);
         }
 

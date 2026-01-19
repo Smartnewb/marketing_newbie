@@ -4,7 +4,9 @@ export const UsageTracker = {
         'gpt-4o': { input: 5.00, output: 15.00 },
         'gpt-5.2': { input: 10.00, output: 30.00 },
         'dall-e-3': { per_image: 0.040 }, // Standard Quality
-        'seedream-4-5': { per_image: 0.020 } // 카카오 Seedream 4.5
+        'seedream-4-5': { per_image: 0.020 }, // 카카오 Seedream 4.5
+        'pollinations-free': { per_image: 0 }, // 무료 API
+        'pollinations-fallback': { per_image: 0 } // Fallback (무료)
     },
 
     getLogs() {
