@@ -150,8 +150,11 @@ Return a JSON array with objects:
 
             let ideas = [];
             try {
-                // Responses API는 output 필드에 결과가 있음
-                const content = data.output?.[0]?.content?.[0]?.text || data.output?.[0]?.content?.find(c => c.type === 'output_text')?.text || JSON.stringify(data);
+                // Responses API는 output 필드에 결과가 있음 - message 타입 찾기
+                const messageOutput = data.output?.find(o => o.type === 'message') || data.output?.[data.output.length - 1];
+                const content = messageOutput?.content?.[0]?.text ||
+                                messageOutput?.content?.find(c => c.type === 'output_text')?.text ||
+                                JSON.stringify(data);
                 console.log('Parsed content:', content);
                 const jsonMatch = content.match(/\[[\s\S]*\]/);
                 ideas = jsonMatch ? JSON.parse(jsonMatch[0]) : JSON.parse(content);
@@ -344,8 +347,12 @@ ${localStorage.getItem('brand_knowledge_vectors') ? JSON.parse(localStorage.getI
             console.log('Chat GPT-5.2 Response:', data);
             if (data.error) throw new Error(data.error.message);
 
-            // Responses API 응답 파싱
-            const botContent = data.output?.[0]?.content?.[0]?.text || data.output?.[0]?.content?.find(c => c.type === 'output_text')?.text || '응답을 처리하는 중 오류가 발생했어요.';
+            // Responses API 응답 파싱 - output 배열에서 message 타입 찾기
+            const messageOutput = data.output?.find(o => o.type === 'message') || data.output?.[data.output.length - 1];
+            const botContent = messageOutput?.content?.[0]?.text ||
+                               messageOutput?.content?.find(c => c.type === 'output_text')?.text ||
+                               '응답을 처리하는 중 오류가 발생했어요.';
+            console.log('Message output:', messageOutput);
             console.log('Bot content:', botContent);
             const botMsg = { role: 'assistant', content: botContent };
             setMessages(prev => [...prev, botMsg]);
